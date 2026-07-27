@@ -103,6 +103,23 @@
     "terms": "Terms of Service",
     "privacy": "Privacy Policy"
   },
+  "contact": {
+    "openButton": "Contact support",
+    "title": "Contact us",
+    "subtitle": "Choose a contact method below",
+    "telegram": "Telegram",
+    "whatsapp": "WhatsApp",
+    "wechat": "WeChat",
+    "qq": "QQ",
+    "qrCode": "Scan to contact us",
+    "open": "Open",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "minimal": {
+    "storeLabel": "Digital goods store",
+    "productCount": "{count} products"
+  },
   "notFoundPage": {
     "title": "Page Not Found",
     "description": "The page you are looking for may have been moved, deleted, or the URL is incorrect. You can continue exploring other sections of {site}.",

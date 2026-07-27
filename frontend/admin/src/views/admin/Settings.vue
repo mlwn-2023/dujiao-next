@@ -31,6 +31,7 @@ const navigationTabRef = ref<InstanceType<typeof SettingsNavigationTab>>()
 const homeAnnouncementTabRef = ref<InstanceType<typeof SettingsHomeAnnouncementTab>>()
 const upstreamSyncTabRef = ref<InstanceType<typeof SettingsUpstreamSyncTab>>()
 const siteIconPickerRef = ref<InstanceType<typeof MediaPicker> | null>(null)
+const contactQRCodePickerRef = ref<InstanceType<typeof MediaPicker> | null>(null)
 const supportedLanguages = ['zh-CN', 'zh-TW', 'en-US'] as const
 type SupportedLanguage = (typeof supportedLanguages)[number]
 type SiteScriptPosition = 'head' | 'body_end'
@@ -186,6 +187,9 @@ const form = reactive({
   contact: {
     telegram: '',
     whatsapp: '',
+    wechat: '',
+    qq: '',
+    qr_code: '',
   },
   seo: {
     title: createLocalizedField(),
@@ -613,6 +617,14 @@ const clearSiteIcon = () => {
   form.brand.site_icon = ''
 }
 
+const openContactQRCodePicker = () => {
+  contactQRCodePickerRef.value?.openPicker()
+}
+
+const clearContactQRCode = () => {
+  form.contact.qr_code = ''
+}
+
 const saveOrderSettings = async () => {
   const normalizedMaxRefundDays = clampNumber(form.order_max_refund_days, 0, 3650, 30)
   const normalizedPaymentExpireMinutes = clampNumber(orderPaymentExpireMinutes.value, 1, 10080, 15)
@@ -967,6 +979,34 @@ onMounted(() => {
           <div class="space-y-2">
             <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.contact.whatsapp') }}</label>
             <Input v-model="form.contact.whatsapp" :placeholder="t('admin.settings.contact.whatsappPlaceholder')" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.contact.wechat') }}</label>
+            <Input v-model="form.contact.wechat" :placeholder="t('admin.settings.contact.wechatPlaceholder')" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.contact.qq') }}</label>
+            <Input v-model="form.contact.qq" :placeholder="t('admin.settings.contact.qqPlaceholder')" />
+          </div>
+          <div class="space-y-3 md:col-span-2">
+            <div>
+              <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.contact.qrCode') }}</label>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.contact.qrCodeHint') }}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <div v-if="form.contact.qr_code" class="flex h-28 w-28 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted/30 p-2">
+                <img :src="getImageUrl(form.contact.qr_code)" :alt="t('admin.settings.contact.qrCode')" class="h-full w-full object-contain" />
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" @click="openContactQRCodePicker">
+                  {{ form.contact.qr_code ? t('admin.settings.contact.changeQRCode') : t('admin.settings.contact.selectQRCode') }}
+                </Button>
+                <Button v-if="form.contact.qr_code" type="button" variant="destructive" @click="clearContactQRCode">
+                  {{ t('admin.common.delete') }}
+                </Button>
+              </div>
+            </div>
+            <MediaPicker ref="contactQRCodePickerRef" v-model="form.contact.qr_code" scene="common" dialog-only />
           </div>
         </div>
       </div>

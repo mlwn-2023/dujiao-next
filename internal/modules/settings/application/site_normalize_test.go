@@ -143,6 +143,12 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 			"show_language_switcher": false,
 			"show_theme_switcher":    "true",
 		},
+		"minimal_theme_colors": map[string]interface{}{
+			"announcement_light": " #F97316 ",
+			"announcement_dark":  "#7C2D12",
+			"button_light":       "invalid",
+			"button_dark":        "#A78BFA",
+		},
 		"seo": map[string]interface{}{
 			"title": map[string]interface{}{
 				"zh-CN": "  标题  ",
@@ -263,6 +269,16 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 	}
 	if controls["show_language_switcher"] != false || controls["show_theme_switcher"] != true {
 		t.Fatalf("unexpected ui_controls: %+v", controls)
+	}
+	colors, ok := result["minimal_theme_colors"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("invalid minimal_theme_colors payload type: %T", result["minimal_theme_colors"])
+	}
+	if colors["announcement_light"] != "#F97316" || colors["announcement_dark"] != "#7C2D12" {
+		t.Fatalf("unexpected announcement colors: %+v", colors)
+	}
+	if colors["button_light"] != "#2563EB" || colors["button_dark"] != "#A78BFA" {
+		t.Fatalf("unexpected button colors: %+v", colors)
 	}
 
 	seo, ok := result["seo"].(map[string]interface{})

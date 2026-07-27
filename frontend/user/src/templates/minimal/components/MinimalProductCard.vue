@@ -17,7 +17,7 @@
       </div>
       <button
         type="button"
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground text-background transition group-hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--minimal-button-bg)] text-[var(--minimal-button-text)] transition group-hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
         :disabled="soldOut"
         :aria-label="t('products.quickBuyAria')"
         @click.prevent.stop="$emit('quickBuy', product)"

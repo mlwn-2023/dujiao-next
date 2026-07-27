@@ -123,6 +123,12 @@ func (h *Handler) GetConfig(c *gin.Context) {
 			"show_language_switcher": true,
 			"show_theme_switcher":    true,
 		},
+		"minimal_theme_colors": map[string]interface{}{
+			"announcement_light": "#2563EB",
+			"announcement_dark":  "#1E3A8A",
+			"button_light":       "#2563EB",
+			"button_dark":        "#60A5FA",
+		},
 		"scripts": make([]interface{}, 0),
 	}
 

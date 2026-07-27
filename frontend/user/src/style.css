@@ -296,6 +296,9 @@ html[data-telegram-mini-app="true"] body {
 
 .storefront-product-card {
   container-type: inline-size;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Keep the mobile two-column card footer usable on narrow phones. */

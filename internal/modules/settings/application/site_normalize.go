@@ -45,12 +45,31 @@ func normalizeSiteSetting(value map[string]interface{}) jsonmap.JSON {
 	normalized[constants.SettingFieldSiteCurrency] = normalizeSiteCurrency(value[constants.SettingFieldSiteCurrency])
 	normalized["template_mode"] = normalizeSiteTemplateMode(value["template_mode"])
 	normalized[constants.SettingFieldStorefrontTemplate] = normalizeStorefrontTemplate(value[constants.SettingFieldStorefrontTemplate])
+	normalized["ui_controls"] = normalizeSiteUIControls(value["ui_controls"])
 
 	if raw, ok := value["languages"]; ok {
 		normalized["languages"] = normalizeSiteLanguages(raw)
 	}
 
 	return normalized
+}
+
+func normalizeSiteUIControls(raw interface{}) map[string]interface{} {
+	result := map[string]interface{}{
+		"show_language_switcher": true,
+		"show_theme_switcher":    true,
+	}
+	controls, ok := raw.(map[string]interface{})
+	if !ok {
+		return result
+	}
+	if value, exists := controls["show_language_switcher"]; exists {
+		result["show_language_switcher"] = parseSettingBool(value)
+	}
+	if value, exists := controls["show_theme_switcher"]; exists {
+		result["show_theme_switcher"] = parseSettingBool(value)
+	}
+	return result
 }
 
 func normalizeSiteScripts(raw interface{}) []interface{} {

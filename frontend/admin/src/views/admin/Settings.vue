@@ -37,6 +37,7 @@ const contactQRCodePickerRef = ref<InstanceType<typeof MediaPicker> | null>(null
 const supportedLanguages = ['zh-CN', 'zh-TW', 'en-US'] as const
 type SupportedLanguage = (typeof supportedLanguages)[number]
 type SiteScriptPosition = 'head' | 'body_end'
+type MinimalThemeColorKey = 'announcement_light' | 'announcement_dark' | 'button_light' | 'button_dark'
 type SiteScriptItem = {
   name: string
   enabled: boolean
@@ -85,6 +86,13 @@ const tabs = computed(() => [
   { label: t('admin.settings.tabs.google'), value: 'google' },
   { label: t('admin.settings.tabs.dashboard'), value: 'dashboard' },
   { label: t('admin.settings.tabs.upstreamSync'), value: 'upstream_sync' },
+])
+
+const minimalThemeColorFields = computed<Array<{ key: MinimalThemeColorKey; label: string }>>(() => [
+  { key: 'announcement_light', label: t('admin.settings.template.announcementLight') },
+  { key: 'announcement_dark', label: t('admin.settings.template.announcementDark') },
+  { key: 'button_light', label: t('admin.settings.template.buttonLight') },
+  { key: 'button_dark', label: t('admin.settings.template.buttonDark') },
 ])
 
 const fallbackCurrencyOptions = [
@@ -227,6 +235,12 @@ const form = reactive({
   ui_controls: {
     show_language_switcher: true,
     show_theme_switcher: true,
+  },
+  minimal_theme_colors: {
+    announcement_light: '#2563EB',
+    announcement_dark: '#1E3A8A',
+    button_light: '#2563EB',
+    button_dark: '#60A5FA',
   },
 })
 
@@ -472,6 +486,9 @@ const fetchSettings = async () => {
       if (data.ui_controls) {
         Object.assign(form.ui_controls, data.ui_controls)
       }
+      if (data.minimal_theme_colors) {
+        Object.assign(form.minimal_theme_colors, data.minimal_theme_colors)
+      }
     }
 
     if (orderRes.data && orderRes.data.data) {
@@ -633,6 +650,7 @@ const saveSiteSettings = async () => {
       storefront_template: form.storefront_template,
       template_mode: form.template_mode,
       ui_controls: form.ui_controls,
+      minimal_theme_colors: form.minimal_theme_colors,
     },
   }
   await adminAPI.updateSettings(payload)
@@ -1285,6 +1303,35 @@ onMounted(() => {
             <div>
               <Label for="show-theme-switcher" class="text-sm font-medium">{{ t('admin.settings.template.themeSwitcher') }}</Label>
               <p class="text-xs text-muted-foreground">{{ t('admin.settings.template.themeSwitcherDesc') }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="form.storefront_template === 'minimal'" class="rounded-xl border border-border bg-card">
+        <div class="border-b border-border bg-muted/40 px-6 py-4">
+          <h2 class="text-lg font-semibold">{{ t('admin.settings.template.minimalColorsTitle') }}</h2>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.template.minimalColorsSubtitle') }}</p>
+        </div>
+        <div class="grid gap-4 p-6 sm:grid-cols-2">
+          <div
+            v-for="field in minimalThemeColorFields"
+            :key="field.key"
+            class="space-y-2 rounded-lg border border-border bg-muted/20 p-4"
+          >
+            <Label :for="`minimal-color-${field.key}`" class="text-sm font-medium">{{ field.label }}</Label>
+            <div class="flex items-center gap-3">
+              <input
+                :id="`minimal-color-${field.key}`"
+                v-model="form.minimal_theme_colors[field.key]"
+                type="color"
+                class="h-10 w-14 cursor-pointer rounded-md border border-border bg-background p-1"
+              />
+              <Input
+                v-model="form.minimal_theme_colors[field.key]"
+                class="font-mono uppercase"
+                maxlength="7"
+              />
             </div>
           </div>
         </div>

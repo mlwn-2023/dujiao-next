@@ -1,5 +1,5 @@
 <template>
-  <div class="minimal-shell flex min-h-screen flex-col bg-background text-foreground">
+  <div class="minimal-shell flex min-h-screen flex-col bg-background text-foreground" :style="minimalThemeStyle">
     <header class="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur">
       <div class="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
         <RouterLink to="/" class="flex min-w-0 items-center gap-2.5">
@@ -54,7 +54,7 @@
           <button v-if="searchText" type="button" class="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-secondary" :aria-label="t('blog.searchClear')" @click="clearSearch">
             <X class="h-4 w-4" />
           </button>
-          <button type="submit" class="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background">{{ t('products.searchLabel') }}</button>
+          <button type="submit" class="rounded-full bg-[var(--minimal-button-bg)] px-4 py-2 text-sm font-semibold text-[var(--minimal-button-text)]">{{ t('products.searchLabel') }}</button>
         </div>
       </form>
     </header>
@@ -96,6 +96,51 @@ const languages = [
   { code: 'zh-TW', name: '繁體中文' },
   { code: 'en-US', name: 'English' },
 ]
+
+const defaultMinimalColors = {
+  announcement_light: '#2563EB',
+  announcement_dark: '#1E3A8A',
+  button_light: '#2563EB',
+  button_dark: '#60A5FA',
+}
+
+const normalizeHexColor = (value: unknown, fallback: string) => {
+  const color = String(value || '').trim().toUpperCase()
+  return /^#[0-9A-F]{6}$/.test(color) ? color : fallback
+}
+
+const contrastTextColor = (hex: string) => {
+  const toLinearChannel = (offset: number) => {
+    const channel = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255
+    return channel <= 0.03928
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4
+  }
+  const red = toLinearChannel(1)
+  const green = toLinearChannel(3)
+  const blue = toLinearChannel(5)
+  const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+  return luminance > 0.42 ? '#0B1120' : '#FFFFFF'
+}
+
+const minimalThemeStyle = computed<Record<string, string>>(() => {
+  const configured = appStore.config?.minimal_theme_colors || {}
+  const dark = theme.value === 'dark'
+  const announcement = normalizeHexColor(
+    dark ? configured.announcement_dark : configured.announcement_light,
+    dark ? defaultMinimalColors.announcement_dark : defaultMinimalColors.announcement_light,
+  )
+  const button = normalizeHexColor(
+    dark ? configured.button_dark : configured.button_light,
+    dark ? defaultMinimalColors.button_dark : defaultMinimalColors.button_light,
+  )
+  return {
+    '--minimal-announcement-bg': announcement,
+    '--minimal-announcement-text': contrastTextColor(announcement),
+    '--minimal-button-bg': button,
+    '--minimal-button-text': contrastTextColor(button),
+  }
+})
 
 const changeLanguage = (code: string) => {
   appStore.setLocale(code)

@@ -78,13 +78,13 @@
           {{ t('navbar.logout') }}
         </Button>
         <!-- Theme Switcher -->
-        <Button variant="ghost" size="icon" class="text-muted-foreground" @click="toggleTheme">
+        <Button v-if="showThemeSwitcher" variant="ghost" size="icon" class="text-muted-foreground" @click="toggleTheme">
           <Sun v-if="theme === 'dark'" class="w-4 h-4" />
           <Moon v-else class="w-4 h-4" />
         </Button>
 
         <!-- Language Switcher (Desktop) -->
-        <Popover v-model:open="langOpen">
+        <Popover v-if="showLanguageSwitcher" v-model:open="langOpen">
           <PopoverTrigger as-child>
             <Button variant="ghost" size="sm" class="hidden lg:inline-flex gap-2 text-muted-foreground">
               <Languages class="w-4 h-4" />
@@ -183,7 +183,7 @@
           </Button>
 
           <!-- Language Switcher -->
-          <div class="mt-4 pt-4 border-t">
+          <div v-if="showLanguageSwitcher" class="mt-4 pt-4 border-t">
             <span class="text-xs text-muted-foreground font-semibold uppercase tracking-wider px-4">{{ t('navbar.selectLanguage') }}</span>
             <div class="mt-2 space-y-1">
               <button v-for="lang in languages" :key="lang.code" @click="changeLanguage(lang.code)"
@@ -212,6 +212,7 @@ import { useUserAuthStore } from '../stores/userAuth'
 import { useTheme } from '../utils/theme'
 import { getImageUrl } from '../utils/image'
 import { useNavConfig } from '../composables/useNavConfig'
+import { useStorefrontControls } from '../composables/useStorefrontControls'
 import {
   Sun, Moon, ShoppingCart, ClipboardList, LogIn, User, LogOut, Languages,
   EllipsisVertical, X,
@@ -225,6 +226,7 @@ const cartStore = useCartStore()
 const userAuthStore = useUserAuthStore()
 const { theme, toggleTheme } = useTheme()
 const { primaryNavItems, secondaryNavItems } = useNavConfig()
+const { showLanguageSwitcher, showThemeSwitcher } = useStorefrontControls()
 
 const showMobileMenu = ref(false)
 const langOpen = ref(false)

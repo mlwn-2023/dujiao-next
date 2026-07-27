@@ -224,6 +224,10 @@ const form = reactive({
   footer_links: [] as FooterLinkItem[],
   storefront_template: 'classic' as 'classic' | 'vault' | 'minimal',
   template_mode: 'card' as 'card' | 'list',
+  ui_controls: {
+    show_language_switcher: true,
+    show_theme_switcher: true,
+  },
 })
 
 const smtpData = reactive({
@@ -464,6 +468,10 @@ const fetchSettings = async () => {
       form.storefront_template = rawStorefrontTemplate === 'vault' || rawStorefrontTemplate === 'minimal'
         ? rawStorefrontTemplate
         : 'classic'
+
+      if (data.ui_controls) {
+        Object.assign(form.ui_controls, data.ui_controls)
+      }
     }
 
     if (orderRes.data && orderRes.data.data) {
@@ -624,6 +632,7 @@ const saveSiteSettings = async () => {
       footer_links: form.footer_links,
       storefront_template: form.storefront_template,
       template_mode: form.template_mode,
+      ui_controls: form.ui_controls,
     },
   }
   await adminAPI.updateSettings(payload)
@@ -1255,6 +1264,29 @@ onMounted(() => {
               </div>
             </Label>
           </RadioGroup>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-border bg-card">
+        <div class="border-b border-border bg-muted/40 px-6 py-4">
+          <h2 class="text-lg font-semibold">{{ t('admin.settings.template.controlsTitle') }}</h2>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.template.controlsSubtitle') }}</p>
+        </div>
+        <div class="grid gap-4 p-6 md:grid-cols-2">
+          <div class="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
+            <Switch id="show-language-switcher" v-model="form.ui_controls.show_language_switcher" />
+            <div>
+              <Label for="show-language-switcher" class="text-sm font-medium">{{ t('admin.settings.template.languageSwitcher') }}</Label>
+              <p class="text-xs text-muted-foreground">{{ t('admin.settings.template.languageSwitcherDesc') }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
+            <Switch id="show-theme-switcher" v-model="form.ui_controls.show_theme_switcher" />
+            <div>
+              <Label for="show-theme-switcher" class="text-sm font-medium">{{ t('admin.settings.template.themeSwitcher') }}</Label>
+              <p class="text-xs text-muted-foreground">{{ t('admin.settings.template.themeSwitcherDesc') }}</p>
+            </div>
+          </div>
         </div>
       </div>
 

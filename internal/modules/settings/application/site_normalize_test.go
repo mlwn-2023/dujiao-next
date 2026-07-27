@@ -140,6 +140,10 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 			"qq":       "  12345678  ",
 			"qr_code":  "  /uploads/common/contact.png  ",
 		},
+		"ui_controls": map[string]interface{}{
+			"show_language_switcher": false,
+			"show_theme_switcher":    "true",
+		},
 		"seo": map[string]interface{}{
 			"title": map[string]interface{}{
 				"zh-CN": "  标题  ",
@@ -268,6 +272,13 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 	}
 	if contact["qr_code"] != "/uploads/common/contact.png" {
 		t.Fatalf("unexpected qr_code: %v", contact["qr_code"])
+	}
+	controls, ok := result["ui_controls"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("invalid ui_controls payload type: %T", result["ui_controls"])
+	}
+	if controls["show_language_switcher"] != false || controls["show_theme_switcher"] != true {
+		t.Fatalf("unexpected ui_controls: %+v", controls)
 	}
 
 	seo, ok := result["seo"].(map[string]interface{})

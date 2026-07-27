@@ -10,6 +10,7 @@ import (
 
 var settingSupportedLanguages = append([]string(nil), constants.SupportedLocales...)
 var settingCurrencyCodePattern = regexp.MustCompile(`^[A-Z]{3}$`)
+var settingHexColorPattern = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
 
 const (
 	settingSiteScriptsMaxCount       = 20
@@ -46,12 +47,32 @@ func normalizeSiteSetting(value map[string]interface{}) jsonmap.JSON {
 	normalized["template_mode"] = normalizeSiteTemplateMode(value["template_mode"])
 	normalized[constants.SettingFieldStorefrontTemplate] = normalizeStorefrontTemplate(value[constants.SettingFieldStorefrontTemplate])
 	normalized["ui_controls"] = normalizeSiteUIControls(value["ui_controls"])
+	normalized["minimal_theme_colors"] = normalizeMinimalThemeColors(value["minimal_theme_colors"])
 
 	if raw, ok := value["languages"]; ok {
 		normalized["languages"] = normalizeSiteLanguages(raw)
 	}
 
 	return normalized
+}
+
+func normalizeMinimalThemeColors(raw interface{}) map[string]interface{} {
+	defaults := map[string]string{
+		"announcement_light": "#2563EB",
+		"announcement_dark":  "#1E3A8A",
+		"button_light":       "#2563EB",
+		"button_dark":        "#60A5FA",
+	}
+	result := make(map[string]interface{}, len(defaults))
+	colors, _ := raw.(map[string]interface{})
+	for key, fallback := range defaults {
+		value := strings.ToUpper(normalizeSettingText(colors[key]))
+		if !settingHexColorPattern.MatchString(value) {
+			value = fallback
+		}
+		result[key] = value
+	}
+	return result
 }
 
 func normalizeSiteUIControls(raw interface{}) map[string]interface{} {

@@ -1,6 +1,6 @@
 <template>
   <div class="minimal-home">
-    <section v-if="announcement" class="border-b border-border bg-foreground text-background">
+    <section v-if="announcement" class="border-b border-border bg-[var(--minimal-announcement-bg)] text-[var(--minimal-announcement-text)]">
       <div class="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6">
         <div class="flex items-start gap-3">
           <Megaphone class="mt-0.5 h-5 w-5 shrink-0 opacity-80" />
@@ -17,7 +17,7 @@
         <button
           type="button"
           class="shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition"
-          :class="selectedCategory === null ? 'border-foreground bg-foreground text-background' : 'border-border bg-card text-muted-foreground hover:text-foreground'"
+          :class="selectedCategory === null ? 'border-[var(--minimal-button-bg)] bg-[var(--minimal-button-bg)] text-[var(--minimal-button-text)]' : 'border-border bg-card text-muted-foreground hover:text-foreground'"
           @click="selectCategory(null)"
         >
           {{ t('products.allCategories') }}
@@ -27,7 +27,7 @@
           :key="category.id"
           type="button"
           class="shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition"
-          :class="selectedCategory === category.id ? 'border-foreground bg-foreground text-background' : 'border-border bg-card text-muted-foreground hover:text-foreground'"
+          :class="selectedCategory === category.id ? 'border-[var(--minimal-button-bg)] bg-[var(--minimal-button-bg)] text-[var(--minimal-button-text)]' : 'border-border bg-card text-muted-foreground hover:text-foreground'"
           @click="selectCategory(category.id)"
         >
           {{ getLocalizedText(category.name) }}

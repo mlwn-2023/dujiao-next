@@ -9,7 +9,14 @@
         </RouterLink>
 
         <nav class="ml-auto flex items-center gap-1.5">
-          <button type="button" data-testid="minimal-search-button" class="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground" :aria-label="t('products.searchLabel')" @click="searchOpen = !searchOpen">
+          <button
+            type="button"
+            data-testid="minimal-search-button"
+            :data-search-mode="userAuthStore.isAuthenticated ? 'products' : 'guest-orders'"
+            class="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+            :aria-label="userAuthStore.isAuthenticated ? t('products.searchLabel') : t('navbar.guestOrders')"
+            @click="handleSearchAction"
+          >
             <Search class="h-4.5 w-4.5" />
           </button>
           <button v-if="showThemeSwitcher" type="button" data-testid="minimal-theme-button" class="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground" :aria-label="t('resellerConsole.common.toggleTheme')" @click="toggleTheme">
@@ -79,7 +86,7 @@ const route = useRoute()
 const router = useRouter()
 const { theme, toggleTheme } = useTheme()
 const { showLanguageSwitcher, showThemeSwitcher } = useStorefrontControls()
-const searchOpen = ref(Boolean(route.query.search))
+const searchOpen = ref(userAuthStore.isAuthenticated && Boolean(route.query.search))
 const searchText = ref(String(route.query.search || ''))
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const languageOpen = ref(false)
@@ -93,6 +100,15 @@ const languages = [
 const changeLanguage = (code: string) => {
   appStore.setLocale(code)
   languageOpen.value = false
+}
+
+const handleSearchAction = async () => {
+  if (!userAuthStore.isAuthenticated) {
+    searchOpen.value = false
+    await router.push('/guest/orders')
+    return
+  }
+  searchOpen.value = !searchOpen.value
 }
 
 const submitSearch = async () => {
@@ -117,6 +133,10 @@ watch(searchOpen, async (open) => {
 
 watch(() => route.query.search, (value) => {
   searchText.value = String(value || '')
+})
+
+watch(() => userAuthStore.isAuthenticated, (authenticated) => {
+  if (!authenticated) searchOpen.value = false
 })
 
 const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'Dujiao-Next')

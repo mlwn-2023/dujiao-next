@@ -27,6 +27,16 @@ func TestOrderStoreRequiresGuestCredentialSecret(t *testing.T) {
 	_ = New(openOrderTenantScopeTestDB(t), "")
 }
 
+func TestGuestCredentialBackfillCandidateSQLCastsPostgresHashStart(t *testing.T) {
+	query, args := guestCredentialBackfillCandidateSQL("postgres")
+	if !strings.Contains(query, "SUBSTRING(guest_password FROM CAST(? AS INTEGER))") {
+		t.Fatalf("postgres candidate query must explicitly cast hash start as integer: %s", query)
+	}
+	if len(args) != 4 {
+		t.Fatalf("postgres candidate args = %d, want 4", len(args))
+	}
+}
+
 func TestGuestCredentialIsHashedAtRestAndRawCredentialStillQueries(t *testing.T) {
 	db := openOrderTenantScopeTestDB(t)
 	repo := New(db, "test-guest-credential-secret-with-32-bytes")

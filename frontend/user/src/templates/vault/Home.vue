@@ -109,10 +109,10 @@
           <Button as-child variant="outline" size="sm" class="rounded-full"><RouterLink to="/products">{{ t('home.featured.viewAll') }}</RouterLink></Button>
         </div>
 
-        <div v-if="productsLoading" class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(228px,1fr))]">
+        <div v-if="productsLoading" class="storefront-product-grid">
           <div v-for="i in 10" :key="i" class="h-[280px] rounded-lg border bg-card"></div>
         </div>
-        <div v-else-if="products.length" class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(228px,1fr))]">
+        <div v-else-if="products.length" class="storefront-product-grid">
           <VaultProductCard
             v-for="(product, idx) in products"
             :key="product.id"

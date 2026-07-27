@@ -4,13 +4,13 @@ import { useAppStore } from '../stores/app'
  * 店面模板系统（站长全局切换 · 渐进并行迁移）
  *
  * - 当前激活模板优先级：本地预览覆盖(?template=) > 站点全局配置(storefront_template) > 默认 classic
- * - classic 沿用现有 ../views/*，vault 落在 ./vault/*；vault 缺页时自动回退 classic，
+ * - classic/minimal 沿用现有 ../views/*，vault 落在 ./vault/*；vault 缺页时自动回退 classic，
  *   因此可以一页一页地把新设计搬进 vault，旧站全程可用。
  */
 
-export type StorefrontTemplate = 'classic' | 'vault'
+export type StorefrontTemplate = 'classic' | 'vault' | 'minimal'
 
-export const STOREFRONT_TEMPLATES: StorefrontTemplate[] = ['classic', 'vault']
+export const STOREFRONT_TEMPLATES: StorefrontTemplate[] = ['classic', 'vault', 'minimal']
 export const DEFAULT_TEMPLATE: StorefrontTemplate = 'classic'
 
 const OVERRIDE_KEY = 'dj-storefront-template'

@@ -3,8 +3,10 @@
     <header class="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur">
       <div class="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
         <RouterLink to="/" class="flex min-w-0 items-center gap-2.5">
-          <img v-if="brandIcon" :src="brandIcon" :alt="brandName" class="h-9 w-9 rounded-xl object-cover" />
-          <span v-else class="grid h-9 w-9 place-items-center rounded-xl bg-foreground text-sm font-bold text-background">{{ brandInitial }}</span>
+          <span class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--minimal-site-icon-bg)] text-[var(--minimal-site-icon-text)]">
+            <img v-if="brandIcon" :src="brandIcon" :alt="brandName" class="h-7 w-7 object-contain" />
+            <span v-else class="text-sm font-bold">{{ brandInitial }}</span>
+          </span>
           <span class="hidden max-w-xs truncate text-base font-bold tracking-tight sm:inline sm:text-lg">{{ brandName }}</span>
         </RouterLink>
 
@@ -102,6 +104,8 @@ const defaultMinimalColors = {
   announcement_dark: '#1E3A8A',
   button_light: '#2563EB',
   button_dark: '#60A5FA',
+  site_icon_light: '#F4F4F5',
+  site_icon_dark: '#27272A',
 }
 
 const normalizeHexColor = (value: unknown, fallback: string) => {
@@ -134,11 +138,17 @@ const minimalThemeStyle = computed<Record<string, string>>(() => {
     dark ? configured.button_dark : configured.button_light,
     dark ? defaultMinimalColors.button_dark : defaultMinimalColors.button_light,
   )
+  const siteIcon = normalizeHexColor(
+    dark ? configured.site_icon_dark : configured.site_icon_light,
+    dark ? defaultMinimalColors.site_icon_dark : defaultMinimalColors.site_icon_light,
+  )
   return {
     '--minimal-announcement-bg': announcement,
     '--minimal-announcement-text': contrastTextColor(announcement),
     '--minimal-button-bg': button,
     '--minimal-button-text': contrastTextColor(button),
+    '--minimal-site-icon-bg': siteIcon,
+    '--minimal-site-icon-text': contrastTextColor(siteIcon),
   }
 })
 

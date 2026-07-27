@@ -149,6 +149,10 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 			"announcement_dark":  "#7C2D12",
 			"button_light":       "invalid",
 			"button_dark":        "#A78BFA",
+			"contact_light":      "#0EA5E9",
+			"contact_dark":       "invalid",
+			"site_icon_light":    "#FEF3C7",
+			"site_icon_dark":     "#18181B",
 		},
 		"seo": map[string]interface{}{
 			"title": map[string]interface{}{
@@ -295,6 +299,12 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 	}
 	if colors["button_light"] != "#2563EB" || colors["button_dark"] != "#A78BFA" {
 		t.Fatalf("unexpected button colors: %+v", colors)
+	}
+	if colors["contact_light"] != "#0EA5E9" || colors["contact_dark"] != "#60A5FA" {
+		t.Fatalf("unexpected contact colors: %+v", colors)
+	}
+	if colors["site_icon_light"] != "#FEF3C7" || colors["site_icon_dark"] != "#18181B" {
+		t.Fatalf("unexpected site icon colors: %+v", colors)
 	}
 
 	seo, ok := result["seo"].(map[string]interface{})

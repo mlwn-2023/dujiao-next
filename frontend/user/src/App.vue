@@ -42,7 +42,7 @@
       <MobileBottomNav v-if="!isResellerConsole" />
     </template>
 
-    <ContactFloatingButton v-if="!isResellerConsole" />
+    <ContactFloatingButton v-if="!isResellerConsole" :minimal="isMinimal" />
     <Loading :loading="appStore.loading" />
     <Toast />
     <ConfirmDialog />

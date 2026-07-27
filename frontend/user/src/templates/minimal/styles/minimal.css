@@ -1,0 +1,83 @@
+/*
+ * Minimal storefront template.
+ *
+ * It intentionally reuses the mature classic page components and changes
+ * only presentation. That keeps checkout, account, order, and payment flows
+ * aligned with upstream while providing a quieter storefront option.
+ */
+.storefront-minimal {
+  --ui-bg-page: #fafafa;
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-soft: #f4f4f5;
+  --ui-bg-muted: #eeeeef;
+  --ui-text-primary: #18181b;
+  --ui-text-secondary: #3f3f46;
+  --ui-text-muted: #71717a;
+  --ui-border: rgba(24, 24, 27, 0.1);
+  --ui-border-strong: rgba(24, 24, 27, 0.18);
+  --ui-accent: #18181b;
+  --ui-accent-hover: #27272a;
+  --ui-accent-soft: rgba(24, 24, 27, 0.08);
+  --ui-radius-sm: 0.375rem;
+  --ui-radius-md: 0.5rem;
+  --ui-radius-lg: 0.75rem;
+  --ui-radius-xl: 1rem;
+  --ui-shadow-1: 0 1px 2px rgba(24, 24, 27, 0.04);
+  --ui-shadow-2: 0 8px 24px -16px rgba(24, 24, 27, 0.18);
+  --ui-shadow-3: 0 14px 36px -22px rgba(24, 24, 27, 0.22);
+  --ui-shadow-soft: 0 6px 20px -16px rgba(24, 24, 27, 0.2);
+  --ui-shadow-card: 0 10px 28px -20px rgba(24, 24, 27, 0.24);
+}
+
+.dark .storefront-minimal {
+  --ui-bg-page: #111113;
+  --ui-bg-elevated: #18181b;
+  --ui-bg-soft: #202024;
+  --ui-bg-muted: #27272a;
+  --ui-text-primary: #fafafa;
+  --ui-text-secondary: #d4d4d8;
+  --ui-text-muted: #a1a1aa;
+  --ui-border: rgba(255, 255, 255, 0.1);
+  --ui-border-strong: rgba(255, 255, 255, 0.18);
+  --ui-accent: #f4f4f5;
+  --ui-accent-hover: #ffffff;
+  --ui-accent-soft: rgba(255, 255, 255, 0.1);
+  --ui-text-on-accent: #18181b;
+}
+
+.storefront-minimal > nav {
+  background: color-mix(in srgb, var(--ui-bg-elevated) 96%, transparent);
+  box-shadow: none;
+}
+
+.storefront-minimal .home-page section {
+  border-color: var(--ui-border);
+}
+
+.storefront-minimal .theme-section-heading {
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.storefront-minimal .storefront-product-card {
+  border-radius: var(--ui-radius-lg);
+  box-shadow: none;
+}
+
+.storefront-minimal .storefront-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.storefront-minimal .storefront-product-card > div:first-child {
+  background: var(--ui-bg-soft);
+}
+
+.storefront-minimal > footer {
+  background: var(--ui-bg-elevated);
+}
+
+.storefront-minimal > footer > .container {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}

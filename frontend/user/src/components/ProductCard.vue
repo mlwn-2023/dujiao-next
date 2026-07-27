@@ -1,6 +1,6 @@
 <template>
   <Card
-    class="group relative overflow-hidden flex flex-col h-full rounded-2xl transition-all theme-slide-up"
+    class="storefront-product-card group relative overflow-hidden flex flex-col h-full rounded-2xl transition-all theme-slide-up"
     :class="isSoldOut(product)
       ? 'cursor-default opacity-85 grayscale-[0.25] saturate-50 border-destructive/30'
       : 'cursor-pointer hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg'"
@@ -94,7 +94,7 @@
         {{ getLocalizedText(product.description) }}
       </p>
 
-      <div class="flex items-center justify-between border-t pt-2 md:pt-4 mt-auto">
+      <div class="storefront-card-footer flex items-center justify-between border-t pt-2 md:pt-4 mt-auto">
         <div class="flex flex-col">
           <span class="hidden md:block text-xs text-muted-foreground uppercase tracking-wider">{{ t('products.price') }}</span>
           <span
@@ -132,7 +132,7 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="storefront-card-actions flex items-center gap-2">
           <!-- Quick buy cart button -->
           <Button
             type="button"
@@ -154,7 +154,7 @@
             <ArrowRight class="w-4 h-4 transition-transform" :class="isSoldOut(product) ? '' : 'group-hover:translate-x-1'" />
           </span>
           <!-- Mobile: arrow only -->
-          <ChevronRight class="md:hidden w-4 h-4 text-muted-foreground" />
+          <ChevronRight class="storefront-card-mobile-arrow md:hidden w-4 h-4 text-muted-foreground" />
         </div>
       </div>
     </div>

@@ -9,6 +9,29 @@ import (
 	"github.com/dujiao-next/internal/constants"
 )
 
+func TestNormalizeStorefrontTemplate(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  interface{}
+		want string
+	}{
+		{name: "classic", raw: "classic", want: constants.StorefrontTemplateClassic},
+		{name: "vault", raw: "vault", want: constants.StorefrontTemplateVault},
+		{name: "minimal", raw: "minimal", want: constants.StorefrontTemplateMinimal},
+		{name: "trimmed minimal", raw: "  minimal  ", want: constants.StorefrontTemplateMinimal},
+		{name: "unknown falls back", raw: "unknown", want: constants.StorefrontTemplateDefault},
+		{name: "nil falls back", raw: nil, want: constants.StorefrontTemplateDefault},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := normalizeStorefrontTemplate(tt.raw); got != tt.want {
+				t.Fatalf("normalizeStorefrontTemplate(%v) = %q, want %q", tt.raw, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestUpdateOrderSettingNormalized(t *testing.T) {
 	repo := newMockSettingRepo()
 	svc := NewService(repo)

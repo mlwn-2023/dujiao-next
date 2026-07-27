@@ -1,5 +1,9 @@
 <template>
-  <div id="app" class="min-h-screen bg-background text-foreground flex flex-col">
+  <div
+    id="app"
+    class="min-h-screen bg-background text-foreground flex flex-col"
+    :class="{ 'storefront-minimal': isMinimal }"
+  >
     <!-- vault 模板：自带顶栏/页脚的外壳包裹页面（控制台仍走下方分支） -->
     <VaultLayout v-if="isVault && !isResellerConsole">
       <ErrorBoundary>
@@ -57,6 +61,7 @@ const route = useRoute()
 const isResellerConsole = computed(() => route.meta.resellerConsole === true)
 // getActiveTemplate 读取 appStore.config（响应式），config 加载后会重新计算
 const isVault = computed(() => getActiveTemplate() === 'vault')
+const isMinimal = computed(() => getActiveTemplate() === 'minimal')
 </script>
 
 <style>

@@ -42,10 +42,6 @@ type MinimalThemeColorKey =
   | 'announcement_dark'
   | 'button_light'
   | 'button_dark'
-  | 'contact_light'
-  | 'contact_dark'
-  | 'site_icon_light'
-  | 'site_icon_dark'
 type SiteScriptItem = {
   name: string
   enabled: boolean
@@ -101,10 +97,6 @@ const minimalThemeColorFields = computed<Array<{ key: MinimalThemeColorKey; labe
   { key: 'announcement_dark', label: t('admin.settings.template.announcementDark') },
   { key: 'button_light', label: t('admin.settings.template.buttonLight') },
   { key: 'button_dark', label: t('admin.settings.template.buttonDark') },
-  { key: 'contact_light', label: t('admin.settings.template.contactLight') },
-  { key: 'contact_dark', label: t('admin.settings.template.contactDark') },
-  { key: 'site_icon_light', label: t('admin.settings.template.siteIconLight') },
-  { key: 'site_icon_dark', label: t('admin.settings.template.siteIconDark') },
 ])
 
 const fallbackCurrencyOptions = [
@@ -253,10 +245,6 @@ const form = reactive({
     announcement_dark: '#1E3A8A',
     button_light: '#2563EB',
     button_dark: '#60A5FA',
-    contact_light: '#2563EB',
-    contact_dark: '#60A5FA',
-    site_icon_light: '#F4F4F5',
-    site_icon_dark: '#27272A',
   },
 })
 

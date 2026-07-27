@@ -53,7 +53,8 @@
               @click="item.href ? undefined : copyValue(item)"
             >
               <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white" :class="item.iconClass">
-                <ContactBrandIcon :kind="item.kind" class="h-6 w-6" />
+                <span v-if="item.kind === 'qq'" class="text-[11px] font-black tracking-[-0.08em]">QQ</span>
+                <ContactBrandIcon v-else :kind="item.kind" class="h-6 w-6" />
               </span>
               <span class="min-w-0 flex-1">
                 <span class="block text-sm font-semibold">{{ item.label }}</span>

@@ -11,7 +11,7 @@
     <div
       data-testid="minimal-product-cover"
       class="shrink-0 overflow-hidden bg-muted"
-      :class="mode === 'list' ? 'm-3 h-24 w-24 rounded-xl sm:w-32' : 'aspect-[4/3] w-full'"
+      :class="mode === 'list' ? 'w-28 self-stretch sm:w-36' : 'aspect-[4/3] w-full'"
     >
       <img
         v-if="coverImage && !imageErrored"

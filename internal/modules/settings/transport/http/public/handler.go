@@ -128,10 +128,6 @@ func (h *Handler) GetConfig(c *gin.Context) {
 			"announcement_dark":  "#1E3A8A",
 			"button_light":       "#2563EB",
 			"button_dark":        "#60A5FA",
-			"contact_light":      "#2563EB",
-			"contact_dark":       "#60A5FA",
-			"site_icon_light":    "#F4F4F5",
-			"site_icon_dark":     "#27272A",
 		},
 		"scripts": make([]interface{}, 0),
 	}

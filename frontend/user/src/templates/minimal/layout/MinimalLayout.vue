@@ -36,10 +36,6 @@
               </button>
             </div>
           </div>
-          <RouterLink to="/guest/orders" class="hidden items-center gap-1.5 rounded-full border border-border px-3 py-2 text-sm font-medium transition hover:bg-secondary sm:inline-flex">
-            <ClipboardList class="h-4 w-4" />
-            {{ t('navbar.guestOrders') }}
-          </RouterLink>
           <RouterLink to="/cart" class="relative grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground" :aria-label="t('navbar.cart')">
             <ShoppingBag class="h-4.5 w-4.5" />
             <span v-if="cartCount" class="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">{{ cartCount }}</span>
@@ -71,7 +67,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ClipboardList, Languages, Moon, Search, ShoppingBag, Sun, UserRound, X } from 'lucide-vue-next'
+import { Languages, Moon, Search, ShoppingBag, Sun, UserRound, X } from 'lucide-vue-next'
 import { useAppStore } from '../../../stores/app'
 import { useCartStore } from '../../../stores/cart'
 import { useUserAuthStore } from '../../../stores/userAuth'
@@ -104,8 +100,6 @@ const defaultMinimalColors = {
   announcement_dark: '#1E3A8A',
   button_light: '#2563EB',
   button_dark: '#60A5FA',
-  site_icon_light: '#F4F4F5',
-  site_icon_dark: '#27272A',
 }
 
 const normalizeHexColor = (value: unknown, fallback: string) => {
@@ -138,17 +132,13 @@ const minimalThemeStyle = computed<Record<string, string>>(() => {
     dark ? configured.button_dark : configured.button_light,
     dark ? defaultMinimalColors.button_dark : defaultMinimalColors.button_light,
   )
-  const siteIcon = normalizeHexColor(
-    dark ? configured.site_icon_dark : configured.site_icon_light,
-    dark ? defaultMinimalColors.site_icon_dark : defaultMinimalColors.site_icon_light,
-  )
   return {
     '--minimal-announcement-bg': announcement,
     '--minimal-announcement-text': contrastTextColor(announcement),
     '--minimal-button-bg': button,
     '--minimal-button-text': contrastTextColor(button),
-    '--minimal-site-icon-bg': siteIcon,
-    '--minimal-site-icon-text': contrastTextColor(siteIcon),
+    '--minimal-site-icon-bg': button,
+    '--minimal-site-icon-text': contrastTextColor(button),
   }
 })
 

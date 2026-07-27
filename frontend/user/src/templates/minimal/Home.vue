@@ -12,16 +12,6 @@
       </div>
     </section>
 
-    <section class="border-b border-border">
-      <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-        <div class="max-w-2xl">
-          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{{ t('minimal.storeLabel') }}</p>
-          <h1 class="mt-2 text-3xl font-bold tracking-[-0.04em] sm:text-5xl">{{ brandName }}</h1>
-          <p v-if="brandDescription" class="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">{{ brandDescription }}</p>
-        </div>
-      </div>
-    </section>
-
     <section class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div class="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
@@ -44,12 +34,9 @@
         </button>
       </div>
 
-      <div class="mb-4 flex items-end justify-between gap-3">
-        <div>
-          <h2 class="text-xl font-bold tracking-tight sm:text-2xl">{{ selectedCategoryName || t('home.featured.title') }}</h2>
-          <p class="mt-1 text-xs text-muted-foreground">{{ t('minimal.productCount', { count: products.length }) }}</p>
-        </div>
-      </div>
+      <p data-testid="minimal-product-count" class="mb-4 text-xs text-muted-foreground">
+        {{ t('minimal.productCount', { count: products.length }) }}
+      </p>
 
       <div v-if="loading" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <div v-for="index in 8" :key="index" class="h-[164px] animate-pulse rounded-2xl border border-border bg-muted/60" />
@@ -72,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import DOMPurify from 'dompurify'
@@ -98,8 +85,6 @@ const selectedCategory = ref<number | null>(null)
 const quickBuyProduct = ref<any>(null)
 const quickBuyVisible = ref(false)
 
-const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'Dujiao-Next')
-const brandDescription = computed(() => getLocalizedText(appStore.config?.brand?.site_description))
 const announcement = computed(() => appStore.config?.announcement || null)
 const announcementTitle = computed(() => getLocalizedText(announcement.value?.title))
 const announcementContent = computed(() => DOMPurify.sanitize(
@@ -109,16 +94,14 @@ const announcementContent = computed(() => DOMPurify.sanitize(
     ALLOWED_ATTR: ['href', 'target', 'rel'],
   },
 ))
-const selectedCategoryName = computed(() => {
-  const category = categories.value.find((item) => item.id === selectedCategory.value)
-  return category ? getLocalizedText(category.name) : ''
-})
+const searchQuery = computed(() => String(route.query.search || '').trim())
 
 const loadProducts = async () => {
   loading.value = true
   try {
     const params: Record<string, unknown> = { page: 1, page_size: 40 }
     if (selectedCategory.value) params.category_id = selectedCategory.value
+    if (searchQuery.value) params.search = searchQuery.value
     const response = await productAPI.list(params)
     products.value = response.data.data || []
   } catch (error) {
@@ -154,5 +137,9 @@ onMounted(async () => {
     console.error('Failed to load minimal categories:', error)
   }
   await loadProducts()
+})
+
+watch(() => route.query.search, () => {
+  void loadProducts()
 })
 </script>

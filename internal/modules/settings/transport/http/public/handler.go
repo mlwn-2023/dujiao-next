@@ -119,6 +119,10 @@ func (h *Handler) GetConfig(c *gin.Context) {
 			"qq":       "",
 			"qr_code":  "",
 		},
+		"ui_controls": map[string]interface{}{
+			"show_language_switcher": true,
+			"show_theme_switcher":    true,
+		},
 		"scripts": make([]interface{}, 0),
 	}
 

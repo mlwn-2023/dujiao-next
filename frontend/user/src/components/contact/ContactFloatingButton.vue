@@ -110,9 +110,9 @@ const titleId = `contact-dialog-${Math.random().toString(36).slice(2)}`
 let copiedTimer = 0
 
 const contact = computed(() => appStore.config?.contact || {})
-const defaultContactColors = {
-  contact_light: '#2563EB',
-  contact_dark: '#60A5FA',
+const defaultButtonColors = {
+  button_light: '#2563EB',
+  button_dark: '#60A5FA',
 }
 const normalizeHexColor = (value: unknown, fallback: string) => {
   const color = String(value || '').trim().toUpperCase()
@@ -133,8 +133,8 @@ const contactButtonStyle = computed(() => {
   const configured = appStore.config?.minimal_theme_colors || {}
   const dark = theme.value === 'dark'
   const backgroundColor = normalizeHexColor(
-    dark ? configured.contact_dark : configured.contact_light,
-    dark ? defaultContactColors.contact_dark : defaultContactColors.contact_light,
+    dark ? configured.button_dark : configured.button_light,
+    dark ? defaultButtonColors.button_dark : defaultButtonColors.button_light,
   )
   return {
     backgroundColor,

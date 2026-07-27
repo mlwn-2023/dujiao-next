@@ -1,10 +1,4 @@
-/*
- * Minimal storefront template.
- *
- * It intentionally reuses the mature classic page components and changes
- * only presentation. That keeps checkout, account, order, and payment flows
- * aligned with upstream while providing a quieter storefront option.
- */
+/* Independent, product-first minimal storefront. */
 .storefront-minimal {
   --ui-bg-page: #fafafa;
   --ui-bg-elevated: #ffffff;
@@ -45,39 +39,16 @@
   --ui-text-on-accent: #18181b;
 }
 
-.storefront-minimal > nav {
-  background: color-mix(in srgb, var(--ui-bg-elevated) 96%, transparent);
-  box-shadow: none;
+.storefront-minimal .minimal-announcement > :first-child {
+  margin-top: 0;
 }
 
-.storefront-minimal .home-page section {
-  border-color: var(--ui-border);
+.storefront-minimal .minimal-announcement > :last-child {
+  margin-bottom: 0;
 }
 
-.storefront-minimal .theme-section-heading {
-  font-weight: 650;
-  letter-spacing: -0.025em;
-}
-
-.storefront-minimal .storefront-product-card {
-  border-radius: var(--ui-radius-lg);
-  box-shadow: none;
-}
-
-.storefront-minimal .storefront-product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--ui-shadow-card);
-}
-
-.storefront-minimal .storefront-product-card > div:first-child {
-  background: var(--ui-bg-soft);
-}
-
-.storefront-minimal > footer {
-  background: var(--ui-bg-elevated);
-}
-
-.storefront-minimal > footer > .container {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+@media (max-width: 340px) {
+  .storefront-minimal .minimal-home .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

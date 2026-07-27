@@ -140,7 +140,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Search, Moon, Sun, ShoppingCart, Languages, Menu, X, User, Info, ClipboardList, LogOut, Github,
-  LayoutGrid, Send, MessageCircle,
+  LayoutGrid,
 } from 'lucide-vue-next'
 import { useAppStore } from '../../../stores/app'
 import { useCartStore } from '../../../stores/cart'
@@ -212,8 +212,6 @@ const footerLinks = computed(() => {
     }))
     .filter((item) => item.name)
 })
-
-const contact = computed(() => appStore.config?.contact as { telegram?: string; whatsapp?: string } | undefined)
 
 const cartCount = computed(() => cartStore.totalItems)
 

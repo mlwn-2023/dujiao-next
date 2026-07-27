@@ -103,6 +103,23 @@
     "terms": "服務條款",
     "privacy": "隱私政策"
   },
+  "contact": {
+    "openButton": "聯絡客服",
+    "title": "聯絡我們",
+    "subtitle": "請選擇下方的聯絡方式",
+    "telegram": "Telegram",
+    "whatsapp": "WhatsApp",
+    "wechat": "微信",
+    "qq": "QQ",
+    "qrCode": "掃碼聯絡我們",
+    "open": "開啟",
+    "copy": "複製",
+    "copied": "已複製"
+  },
+  "minimal": {
+    "storeLabel": "數位商品商店",
+    "productCount": "共 {count} 件商品"
+  },
   "notFoundPage": {
     "title": "頁面不存在",
     "description": "你訪問的頁面可能已移動、刪除，或連結地址有誤。你可以繼續瀏覽 {site} 的其他內容。",

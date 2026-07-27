@@ -4,6 +4,16 @@
     class="min-h-screen bg-background text-foreground flex flex-col"
     :class="{ 'storefront-minimal': isMinimal }"
   >
+    <MinimalLayout v-if="isMinimal && !isResellerConsole">
+      <ErrorBoundary>
+        <RouterView v-slot="{ Component }">
+          <Transition name="page-fade" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </RouterView>
+      </ErrorBoundary>
+    </MinimalLayout>
+
     <!-- vault 模板：自带顶栏/页脚的外壳包裹页面（控制台仍走下方分支） -->
     <VaultLayout v-if="isVault && !isResellerConsole">
       <ErrorBoundary>
@@ -16,7 +26,7 @@
     </VaultLayout>
 
     <!-- classic 模板 / 分销控制台（保持原有结构不变） -->
-    <template v-else>
+    <template v-else-if="!isMinimal || isResellerConsole">
       <Navbar v-if="!isResellerConsole" />
       <main class="flex-1" :class="isResellerConsole ? '' : 'pb-14 lg:pb-0'">
         <ErrorBoundary>
@@ -32,6 +42,7 @@
       <MobileBottomNav v-if="!isResellerConsole" />
     </template>
 
+    <ContactFloatingButton v-if="!isResellerConsole" />
     <Loading :loading="appStore.loading" />
     <Toast />
     <ConfirmDialog />
@@ -54,6 +65,8 @@ import MobileBottomNav from './components/MobileBottomNav.vue'
 
 // vault 外壳按需加载，classic 用户不会拉取其 chunk/样式
 const VaultLayout = defineAsyncComponent(() => import('./templates/vault/layout/VaultLayout.vue'))
+const MinimalLayout = defineAsyncComponent(() => import('./templates/minimal/layout/MinimalLayout.vue'))
+const ContactFloatingButton = defineAsyncComponent(() => import('./components/contact/ContactFloatingButton.vue'))
 
 // config 由 router.beforeEach 统一加载，无需在此重复调用
 const appStore = useAppStore()

@@ -60,8 +60,9 @@ export const getActiveTemplate = (): StorefrontTemplate => {
     return DEFAULT_TEMPLATE
 }
 
-// vault 模板页面（按需动态加载）。key 形如 './vault/Home.vue'
+// 独立模板页面（按需动态加载）。key 形如 './vault/Home.vue' / './minimal/Home.vue'
 const vaultViews = import.meta.glob('./vault/**/*.vue')
+const minimalViews = import.meta.glob('./minimal/**/*.vue')
 
 type ViewLoader = () => Promise<unknown>
 
@@ -73,6 +74,10 @@ export const templateView = (name: string, classicLoader: ViewLoader): ViewLoade
     return () => {
         if (getActiveTemplate() === 'vault') {
             const loader = vaultViews[`./vault/${name}.vue`]
+            if (loader) return loader()
+        }
+        if (getActiveTemplate() === 'minimal') {
+            const loader = minimalViews[`./minimal/${name}.vue`]
             if (loader) return loader()
         }
         return classicLoader()

@@ -38,11 +38,28 @@
         {{ t('minimal.productCount', { count: products.length }) }}
       </p>
 
-      <div v-if="loading" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        <div v-for="index in 8" :key="index" class="h-[164px] animate-pulse rounded-2xl border border-border bg-muted/60" />
+      <div
+        v-if="loading"
+        :class="templateMode === 'list' ? 'space-y-3' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4'"
+      >
+        <div
+          v-for="index in 8"
+          :key="index"
+          class="animate-pulse rounded-2xl border border-border bg-muted/60"
+          :class="templateMode === 'list' ? 'h-28' : 'h-[260px]'"
+        />
       </div>
-      <div v-else-if="products.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        <MinimalProductCard v-for="product in products" :key="product.id" :product="product" @quick-buy="openQuickBuy" />
+      <div
+        v-else-if="products.length"
+        :class="templateMode === 'list' ? 'space-y-3' : 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4'"
+      >
+        <MinimalProductCard
+          v-for="product in products"
+          :key="product.id"
+          :product="product"
+          :mode="templateMode"
+          @quick-buy="openQuickBuy"
+        />
       </div>
       <div v-else class="rounded-2xl border border-dashed border-border px-5 py-16 text-center text-sm text-muted-foreground">
         {{ t('home.featured.empty') }}
@@ -95,6 +112,7 @@ const announcementContent = computed(() => DOMPurify.sanitize(
   },
 ))
 const searchQuery = computed(() => String(route.query.search || '').trim())
+const templateMode = computed<'card' | 'list'>(() => appStore.config?.template_mode === 'list' ? 'list' : 'card')
 
 const loadProducts = async () => {
   loading.value = true

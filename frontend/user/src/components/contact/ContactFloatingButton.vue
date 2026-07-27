@@ -4,6 +4,7 @@
       type="button"
       data-testid="contact-fab"
       class="group flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_12px_32px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(0,0,0,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/25"
+      :style="minimal ? contactButtonStyle : undefined"
       :aria-label="t('contact.openButton')"
       @click="open = true"
     >
@@ -84,6 +85,7 @@ import { useI18n } from 'vue-i18n'
 import { MessagesSquare, X } from 'lucide-vue-next'
 import { useAppStore } from '../../stores/app'
 import { getImageUrl } from '../../utils/image'
+import { useTheme } from '../../utils/theme'
 import ContactBrandIcon from './ContactBrandIcon.vue'
 
 type ContactKind = 'telegram' | 'whatsapp' | 'wechat' | 'qq'
@@ -95,8 +97,12 @@ type ContactItem = {
   iconClass: string
 }
 
+const props = withDefaults(defineProps<{ minimal?: boolean }>(), {
+  minimal: false,
+})
 const { t } = useI18n()
 const appStore = useAppStore()
+const { theme } = useTheme()
 const open = ref(false)
 const copiedKind = ref<ContactKind | null>(null)
 const panelRef = ref<HTMLElement | null>(null)
@@ -104,6 +110,37 @@ const titleId = `contact-dialog-${Math.random().toString(36).slice(2)}`
 let copiedTimer = 0
 
 const contact = computed(() => appStore.config?.contact || {})
+const defaultContactColors = {
+  contact_light: '#2563EB',
+  contact_dark: '#60A5FA',
+}
+const normalizeHexColor = (value: unknown, fallback: string) => {
+  const color = String(value || '').trim().toUpperCase()
+  return /^#[0-9A-F]{6}$/.test(color) ? color : fallback
+}
+const contrastTextColor = (hex: string) => {
+  const toLinearChannel = (offset: number) => {
+    const channel = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  }
+  const luminance = 0.2126 * toLinearChannel(1)
+    + 0.7152 * toLinearChannel(3)
+    + 0.0722 * toLinearChannel(5)
+  return luminance > 0.42 ? '#0B1120' : '#FFFFFF'
+}
+const contactButtonStyle = computed(() => {
+  if (!props.minimal) return undefined
+  const configured = appStore.config?.minimal_theme_colors || {}
+  const dark = theme.value === 'dark'
+  const backgroundColor = normalizeHexColor(
+    dark ? configured.contact_dark : configured.contact_light,
+    dark ? defaultContactColors.contact_dark : defaultContactColors.contact_light,
+  )
+  return {
+    backgroundColor,
+    color: contrastTextColor(backgroundColor),
+  }
+})
 const qrCode = computed(() => String(contact.value?.qr_code || '').trim())
 const isLink = (value: string) => /^(https?:\/\/|mailto:|tel:)/i.test(value)
 

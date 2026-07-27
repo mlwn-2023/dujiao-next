@@ -1,41 +1,63 @@
 <template>
   <RouterLink
     :to="`/products/${product.slug}`"
-    class="minimal-product-card group relative flex min-h-[164px] flex-col overflow-hidden rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
-    :class="{ 'opacity-60': soldOut }"
+    :data-layout-mode="mode"
+    class="minimal-product-card group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+    :class="[
+      mode === 'list' ? 'flex min-h-28 flex-row' : 'flex min-h-[260px] flex-col',
+      { 'opacity-60': soldOut },
+    ]"
   >
-    <div class="flex items-start justify-between gap-2">
-      <span class="line-clamp-1 text-xs font-medium text-muted-foreground">{{ categoryName || t('products.categoryLabel') }}</span>
-      <img v-if="categoryIcon" :src="categoryIcon" :alt="categoryName" class="h-7 w-7 shrink-0 rounded-lg object-contain opacity-80" />
-    </div>
-    <h3 class="mt-2 line-clamp-2 text-[15px] font-bold leading-snug tracking-tight sm:text-base">{{ title }}</h3>
-    <p v-if="description" class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{{ description }}</p>
-    <div class="mt-auto flex items-end justify-between gap-2 pt-4">
-      <div class="min-w-0">
-        <span class="block truncate text-base font-bold text-primary sm:text-lg">{{ displayPrice }}</span>
-        <span class="mt-0.5 block text-[11px] text-muted-foreground">{{ stockLabel }}</span>
+    <div
+      data-testid="minimal-product-cover"
+      class="shrink-0 overflow-hidden bg-muted"
+      :class="mode === 'list' ? 'm-3 h-24 w-24 rounded-xl sm:w-32' : 'aspect-[4/3] w-full'"
+    >
+      <img
+        v-if="coverImage && !imageErrored"
+        :src="coverImage"
+        :alt="title"
+        loading="lazy"
+        class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+        @error="imageErrored = true"
+      />
+      <div v-else class="grid h-full w-full place-items-center text-muted-foreground">
+        <ImageIcon class="h-7 w-7" :stroke-width="1.5" />
       </div>
-      <button
-        type="button"
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--minimal-button-bg)] text-[var(--minimal-button-text)] transition group-hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
-        :disabled="soldOut"
-        :aria-label="t('products.quickBuyAria')"
-        @click.prevent.stop="$emit('quickBuy', product)"
-      >
-        <ArrowUpRight class="h-4 w-4" />
-      </button>
+    </div>
+    <div class="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
+      <span class="line-clamp-1 text-xs font-medium text-muted-foreground">{{ categoryName || t('products.categoryLabel') }}</span>
+      <h3 class="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug tracking-tight sm:text-base">{{ title }}</h3>
+      <p v-if="description" class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{{ description }}</p>
+      <div class="mt-auto flex items-end justify-between gap-2 pt-3">
+        <div class="min-w-0">
+          <span class="block truncate text-base font-bold text-primary sm:text-lg">{{ displayPrice }}</span>
+          <span class="mt-0.5 block text-[11px] text-muted-foreground">{{ stockLabel }}</span>
+        </div>
+        <button
+          type="button"
+          class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--minimal-button-bg)] text-[var(--minimal-button-text)] transition group-hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+          :disabled="soldOut"
+          :aria-label="t('products.quickBuyAria')"
+          @click.prevent.stop="$emit('quickBuy', product)"
+        >
+          <ArrowUpRight class="h-4 w-4" />
+        </button>
+      </div>
     </div>
   </RouterLink>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowUpRight } from 'lucide-vue-next'
+import { ArrowUpRight, Image as ImageIcon } from 'lucide-vue-next'
 import { useLocalized, useProductLabels } from '../../../composables/useProduct'
-import { getImageUrl } from '../../../utils/image'
+import { getFirstImageUrl } from '../../../utils/image'
 
-const props = defineProps<{ product: any }>()
+const props = withDefaults(defineProps<{ product: any; mode?: 'card' | 'list' }>(), {
+  mode: 'card',
+})
 defineEmits<{ quickBuy: [product: any] }>()
 
 const { t } = useI18n()
@@ -45,14 +67,16 @@ const { getStockStatusLabel, isSoldOut, hasPromotionPrice, getPromotionPriceAmou
 const title = computed(() => getLocalizedText(props.product?.title))
 const description = computed(() => getLocalizedText(props.product?.description))
 const categoryName = computed(() => getLocalizedText(props.product?.category?.name))
-const categoryIcon = computed(() => {
-  const raw = String(props.product?.category?.icon || '').trim()
-  return raw ? getImageUrl(raw) : ''
-})
+const coverImage = computed(() => getFirstImageUrl(props.product?.images))
+const imageErrored = ref(false)
 const soldOut = computed(() => isSoldOut(props.product))
 const stockLabel = computed(() => getStockStatusLabel(props.product))
 const displayPrice = computed(() => formatPrice(
   hasPromotionPrice(props.product) ? getPromotionPriceAmount(props.product) : props.product?.price_amount,
   siteCurrency.value,
 ))
+
+watch(coverImage, () => {
+  imageErrored.value = false
+})
 </script>

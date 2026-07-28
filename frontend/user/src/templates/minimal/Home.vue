@@ -13,7 +13,7 @@
     </section>
 
     <section class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-      <div class="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div class="mb-5 flex flex-wrap gap-2">
         <button
           type="button"
           class="shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition"

@@ -1,7 +1,7 @@
 <template>
   <div class="minimal-home">
-    <section v-if="announcement" class="border-b border-border bg-[var(--minimal-announcement-bg)] text-[var(--minimal-announcement-text)]">
-      <div class="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6">
+    <section v-if="announcement" class="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6 sm:pt-6">
+      <div class="rounded-2xl border border-border bg-[var(--minimal-announcement-bg)] px-4 py-4 text-[var(--minimal-announcement-text)] sm:px-6">
         <div class="flex items-start gap-3">
           <Megaphone class="mt-0.5 h-5 w-5 shrink-0 opacity-80" />
           <div class="min-w-0">

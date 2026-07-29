@@ -356,6 +356,7 @@ import { postAPI, productAPI } from '../api'
 import { getImageUrl } from '../utils/image'
 import { useLocalized } from '../composables/useProduct'
 import { useBannerCarousel } from '../composables/useBannerCarousel'
+import { useStorefrontControls } from '../composables/useStorefrontControls'
 import { useProductList } from '../composables/useProductList'
 import { useProductListGroups } from '../composables/useProductListGroups'
 import { usePageSeo } from '../composables/usePageSeo'
@@ -373,6 +374,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { getLocalizedText } = useLocalized()
 const appStore = useAppStore()
+const { showBanner } = useStorefrontControls()
 
 // 英雄横幅上的玻璃态徽章(白字深底,跟随图片而非主题)
 const heroBadgeClass = 'inline-flex items-center gap-2 rounded-md border border-white/25 bg-black/55 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm'
@@ -404,7 +406,7 @@ const {
   bannerLoading,
   currentBannerIndex,
   bannerCount,
-  showHeroSection,
+  showHeroSection: bannerSectionAvailable,
   heroImage,
   heroBadge,
   heroTitle,
@@ -420,6 +422,7 @@ const {
   onBannerTouchEnd,
   stopHeroAutoPlay,
 } = useBannerCarousel()
+const showHeroSection = computed(() => showBanner.value && bannerSectionAvailable.value)
 
 // ==================== List Mode ====================
 const {

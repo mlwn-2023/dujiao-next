@@ -12,6 +12,8 @@
       </div>
     </section>
 
+    <MinimalBannerHero />
+
     <section class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div class="mb-5 flex flex-wrap gap-2">
         <button
@@ -89,6 +91,7 @@ import { processHtmlForDisplay } from '../../utils/content'
 import { type PublicCategory } from '../../utils/category'
 import ProductQuickBuy from '../../components/ProductQuickBuy.vue'
 import MinimalProductCard from './components/MinimalProductCard.vue'
+import MinimalBannerHero from './components/MinimalBannerHero.vue'
 
 const route = useRoute()
 const { t } = useI18n()

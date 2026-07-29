@@ -77,6 +77,7 @@ func normalizeMinimalThemeColors(raw interface{}) map[string]interface{} {
 
 func normalizeSiteUIControls(raw interface{}) map[string]interface{} {
 	result := map[string]interface{}{
+		"show_banner":                  true,
 		"show_language_switcher":       true,
 		"show_theme_switcher":          true,
 		"show_contact_floating_button": true,
@@ -84,6 +85,9 @@ func normalizeSiteUIControls(raw interface{}) map[string]interface{} {
 	controls, ok := raw.(map[string]interface{})
 	if !ok {
 		return result
+	}
+	if value, exists := controls["show_banner"]; exists {
+		result["show_banner"] = parseSettingBool(value)
 	}
 	if value, exists := controls["show_language_switcher"]; exists {
 		result["show_language_switcher"] = parseSettingBool(value)

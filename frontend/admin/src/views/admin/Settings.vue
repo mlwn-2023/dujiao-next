@@ -239,6 +239,7 @@ const form = reactive({
   ui_controls: {
     show_language_switcher: true,
     show_theme_switcher: true,
+    show_contact_floating_button: true,
   },
   minimal_theme_colors: {
     announcement_light: '#2563EB',
@@ -1294,7 +1295,7 @@ onMounted(() => {
           <h2 class="text-lg font-semibold">{{ t('admin.settings.template.controlsTitle') }}</h2>
           <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.template.controlsSubtitle') }}</p>
         </div>
-        <div class="grid gap-4 p-6 md:grid-cols-2">
+        <div class="grid gap-4 p-6 md:grid-cols-2 lg:grid-cols-3">
           <div class="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
             <Switch id="show-language-switcher" v-model="form.ui_controls.show_language_switcher" />
             <div>
@@ -1307,6 +1308,13 @@ onMounted(() => {
             <div>
               <Label for="show-theme-switcher" class="text-sm font-medium">{{ t('admin.settings.template.themeSwitcher') }}</Label>
               <p class="text-xs text-muted-foreground">{{ t('admin.settings.template.themeSwitcherDesc') }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
+            <Switch id="show-contact-floating-button" v-model="form.ui_controls.show_contact_floating_button" />
+            <div>
+              <Label for="show-contact-floating-button" class="text-sm font-medium">{{ t('admin.settings.template.contactFloatingButton') }}</Label>
+              <p class="text-xs text-muted-foreground">{{ t('admin.settings.template.contactFloatingButtonDesc') }}</p>
             </div>
           </div>
         </div>

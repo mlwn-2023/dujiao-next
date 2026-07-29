@@ -46,7 +46,7 @@
           v-for="index in 8"
           :key="index"
           class="animate-pulse rounded-2xl border border-border bg-muted/60"
-          :class="templateMode === 'list' ? 'h-28' : 'h-[260px]'"
+          :class="templateMode === 'list' ? 'h-16 sm:h-[72px]' : 'h-[260px]'"
         />
       </div>
       <div

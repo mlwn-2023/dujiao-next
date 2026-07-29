@@ -4,14 +4,14 @@
     :data-layout-mode="mode"
     class="minimal-product-card group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
     :class="[
-      mode === 'list' ? 'flex min-h-28 flex-row' : 'flex min-h-[260px] flex-col',
+      mode === 'list' ? 'flex flex-row items-center' : 'flex min-h-[260px] flex-col',
       { 'opacity-60': soldOut },
     ]"
   >
     <div
       data-testid="minimal-product-cover"
       class="shrink-0 overflow-hidden bg-muted"
-      :class="mode === 'list' ? 'w-28 self-stretch sm:w-36' : 'aspect-[4/3] w-full'"
+      :class="mode === 'list' ? 'w-16 self-stretch sm:w-[72px]' : 'aspect-[4/3] w-full'"
     >
       <img
         v-if="coverImage && !imageErrored"
@@ -22,10 +22,28 @@
         @error="imageErrored = true"
       />
       <div v-else class="grid h-full w-full place-items-center text-muted-foreground">
-        <ImageIcon class="h-7 w-7" :stroke-width="1.5" />
+        <ImageIcon :class="mode === 'list' ? 'h-5 w-5' : 'h-7 w-7'" :stroke-width="1.5" />
       </div>
     </div>
-    <div class="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
+    <div v-if="mode === 'list'" class="flex min-w-0 flex-1 items-center gap-2.5 p-2.5 sm:gap-3 sm:p-3">
+      <div class="min-w-0 flex-1">
+        <h3 class="truncate text-sm font-semibold leading-tight tracking-tight sm:text-base">{{ title }}</h3>
+        <div class="mt-1 flex min-w-0 items-center gap-2">
+          <span class="truncate text-sm font-bold text-primary sm:text-base">{{ displayPrice }}</span>
+          <span class="shrink-0 text-[11px] text-muted-foreground">{{ stockLabel }}</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--minimal-button-bg)] text-[var(--minimal-button-text)] transition group-hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="soldOut"
+        :aria-label="t('products.quickBuyAria')"
+        @click.prevent.stop="$emit('quickBuy', product)"
+      >
+        <ArrowUpRight class="h-3.5 w-3.5" />
+      </button>
+    </div>
+    <div v-else class="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
       <span class="line-clamp-1 text-xs font-medium text-muted-foreground">{{ categoryName || t('products.categoryLabel') }}</span>
       <h3 class="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug tracking-tight sm:text-base">{{ title }}</h3>
       <p v-if="description" class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{{ description }}</p>

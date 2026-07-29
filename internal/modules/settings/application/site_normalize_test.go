@@ -140,6 +140,7 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 			"qr_code":  "  /uploads/common/contact.png  ",
 		},
 		"ui_controls": map[string]interface{}{
+			"show_banner":                  0,
 			"show_language_switcher":       false,
 			"show_theme_switcher":          "true",
 			"show_contact_floating_button": "false",
@@ -268,7 +269,8 @@ func TestUpdateSiteSettingNormalized(t *testing.T) {
 	if !ok {
 		t.Fatalf("invalid ui_controls payload type: %T", result["ui_controls"])
 	}
-	if controls["show_language_switcher"] != false ||
+	if controls["show_banner"] != false ||
+		controls["show_language_switcher"] != false ||
 		controls["show_theme_switcher"] != true ||
 		controls["show_contact_floating_button"] != false {
 		t.Fatalf("unexpected ui_controls: %+v", controls)

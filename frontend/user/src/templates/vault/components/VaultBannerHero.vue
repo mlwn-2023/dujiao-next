@@ -1,5 +1,5 @@
 <template>
-  <section v-if="showHeroSection" class="mx-auto w-full max-w-[1180px] px-4 pt-6 sm:px-6">
+  <section v-if="showBanner && showHeroSection" class="mx-auto w-full max-w-[1180px] px-4 pt-6 sm:px-6">
     <div
       class="relative overflow-hidden rounded-lg border bg-card shadow-[var(--shadow)]"
       @touchstart="onBannerTouchStart"
@@ -84,8 +84,10 @@ import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowRight, ChevronLeft, ChevronRight, Zap } from 'lucide-vue-next'
 import { useBannerCarousel } from '../../../composables/useBannerCarousel'
+import { useStorefrontControls } from '../../../composables/useStorefrontControls'
 
 const { t } = useI18n()
+const { showBanner } = useStorefrontControls()
 
 const {
   banners,

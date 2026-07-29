@@ -232,6 +232,7 @@ const form = reactive({
   storefront_template: 'classic' as 'classic' | 'vault' | 'minimal',
   template_mode: 'card' as 'card' | 'list',
   ui_controls: {
+    show_banner: true,
     show_language_switcher: true,
     show_theme_switcher: true,
     show_contact_floating_button: true,
@@ -1228,7 +1229,14 @@ onMounted(() => {
           <h2 class="text-lg font-semibold">{{ t('admin.settings.template.controlsTitle') }}</h2>
           <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.template.controlsSubtitle') }}</p>
         </div>
-        <div class="grid gap-4 p-6 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-4 p-6 md:grid-cols-2 lg:grid-cols-4">
+          <div class="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
+            <Switch id="show-banner" v-model="form.ui_controls.show_banner" />
+            <div>
+              <Label for="show-banner" class="text-sm font-medium">{{ t('admin.settings.template.showBanner') }}</Label>
+              <p class="text-xs text-muted-foreground">{{ t('admin.settings.template.showBannerDesc') }}</p>
+            </div>
+          </div>
           <div class="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
             <Switch id="show-language-switcher" v-model="form.ui_controls.show_language_switcher" />
             <div>

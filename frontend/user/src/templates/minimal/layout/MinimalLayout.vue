@@ -2,12 +2,10 @@
   <div class="minimal-shell flex min-h-screen flex-col bg-background text-foreground" :style="minimalThemeStyle">
     <header class="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur">
       <div class="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
-        <RouterLink to="/" class="flex min-w-0 items-center gap-2.5">
-          <span class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--minimal-site-icon-bg)] text-[var(--minimal-site-icon-text)]">
-            <img v-if="brandIcon" :src="brandIcon" :alt="brandName" class="h-7 w-7 object-contain" />
-            <span v-else class="text-sm font-bold">{{ brandInitial }}</span>
+        <RouterLink to="/" class="min-w-0">
+          <span class="flex h-9 max-w-[8.5rem] items-center rounded-full bg-[var(--minimal-site-icon-bg)] px-3 text-[var(--minimal-site-icon-text)] sm:max-w-xs sm:px-4">
+            <span class="truncate text-sm font-bold tracking-tight sm:text-base">{{ brandName }}</span>
           </span>
-          <span class="hidden max-w-xs truncate text-base font-bold tracking-tight sm:inline sm:text-lg">{{ brandName }}</span>
         </RouterLink>
 
         <nav class="ml-auto flex items-center gap-1.5">
@@ -72,7 +70,6 @@ import { useAppStore } from '../../../stores/app'
 import { useCartStore } from '../../../stores/cart'
 import { useUserAuthStore } from '../../../stores/userAuth'
 import { useStorefrontControls } from '../../../composables/useStorefrontControls'
-import { getImageUrl } from '../../../utils/image'
 import { useTheme } from '../../../utils/theme'
 import '../styles/minimal.css'
 
@@ -185,10 +182,5 @@ watch(() => userAuthStore.isAuthenticated, (authenticated) => {
 })
 
 const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'Dujiao-Next')
-const brandInitial = computed(() => brandName.value.charAt(0).toUpperCase())
-const brandIcon = computed(() => {
-  const raw = String(appStore.config?.brand?.site_icon || '').trim()
-  return raw ? getImageUrl(raw) : ''
-})
 const cartCount = computed(() => cartStore.totalItems)
 </script>

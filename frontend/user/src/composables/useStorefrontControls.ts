@@ -8,5 +8,6 @@ export function useStorefrontControls() {
   return {
     showLanguageSwitcher: computed(() => controls.value.show_language_switcher !== false),
     showThemeSwitcher: computed(() => controls.value.show_theme_switcher !== false),
+    showContactFloatingButton: computed(() => controls.value.show_contact_floating_button !== false),
   }
 }

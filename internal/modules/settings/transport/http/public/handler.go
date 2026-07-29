@@ -120,8 +120,9 @@ func (h *Handler) GetConfig(c *gin.Context) {
 			"qr_code":  "",
 		},
 		"ui_controls": map[string]interface{}{
-			"show_language_switcher": true,
-			"show_theme_switcher":    true,
+			"show_language_switcher":       true,
+			"show_theme_switcher":          true,
+			"show_contact_floating_button": true,
 		},
 		"minimal_theme_colors": map[string]interface{}{
 			"announcement_light": "#2563EB",

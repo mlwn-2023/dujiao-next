@@ -42,7 +42,7 @@
       <MobileBottomNav v-if="!isResellerConsole" />
     </template>
 
-    <ContactFloatingButton v-if="!isResellerConsole" :minimal="isMinimal" />
+    <ContactFloatingButton v-if="!isResellerConsole && showContactFloatingButton" :minimal="isMinimal" />
     <Loading :loading="appStore.loading" />
     <Toast />
     <ConfirmDialog />
@@ -54,6 +54,7 @@ import { computed, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from './stores/app'
 import { getActiveTemplate } from './templates/registry'
+import { useStorefrontControls } from './composables/useStorefrontControls'
 import Navbar from './components/Navbar.vue'
 import Footer from './components/Footer.vue'
 import Loading from './components/Loading.vue'
@@ -71,6 +72,7 @@ const ContactFloatingButton = defineAsyncComponent(() => import('./components/co
 // config 由 router.beforeEach 统一加载，无需在此重复调用
 const appStore = useAppStore()
 const route = useRoute()
+const { showContactFloatingButton } = useStorefrontControls()
 const isResellerConsole = computed(() => route.meta.resellerConsole === true)
 // getActiveTemplate 读取 appStore.config（响应式），config 加载后会重新计算
 const isVault = computed(() => getActiveTemplate() === 'vault')

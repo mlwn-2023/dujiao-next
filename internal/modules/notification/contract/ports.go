@@ -53,6 +53,18 @@ type TelegramSender interface {
 	SendMessage(ctx context.Context, chatID, message string) error
 }
 
+type WXPushSendInput struct {
+	BaseURL  string
+	APIToken string
+	Groups   []string
+	Title    string
+	Body     string
+}
+
+type WXPushSender interface {
+	Send(ctx context.Context, input WXPushSendInput) error
+}
+
 type LogRepository interface {
 	Create(log *domain.NotificationLog) error
 	ListAdmin(filter LogListFilter) ([]domain.NotificationLog, int64, error)

@@ -36,6 +36,13 @@ interface NotificationData {
       enabled: boolean
       recipients_text: string
     }
+    wxpush: {
+      enabled: boolean
+      base_url: string
+      api_token: string
+      has_api_token: boolean
+      groups_text: string
+    }
   }
   scenes: {
     wallet_recharge_success: boolean
@@ -99,6 +106,13 @@ const form = reactive({
       enabled: false,
       recipients_text: '',
     },
+    wxpush: {
+      enabled: false,
+      base_url: '',
+      api_token: '',
+      has_api_token: false,
+      groups_text: '',
+    },
   },
   scenes: {
     wallet_recharge_success: true,
@@ -125,6 +139,11 @@ const syncFromProps = () => {
   form.channels.email.recipients_text = props.data.channels.email.recipients_text
   form.channels.telegram.enabled = props.data.channels.telegram.enabled
   form.channels.telegram.recipients_text = props.data.channels.telegram.recipients_text
+  form.channels.wxpush.enabled = props.data.channels.wxpush.enabled
+  form.channels.wxpush.base_url = props.data.channels.wxpush.base_url
+  form.channels.wxpush.api_token = ''
+  form.channels.wxpush.has_api_token = props.data.channels.wxpush.has_api_token
+  form.channels.wxpush.groups_text = props.data.channels.wxpush.groups_text
   Object.assign(form.scenes, props.data.scenes)
   form.templates.wallet_recharge_success = deepCloneTemplate(props.data.templates.wallet_recharge_success)
   form.templates.order_paid_success = deepCloneTemplate(props.data.templates.order_paid_success)
@@ -258,6 +277,12 @@ const save = async () => {
         telegram: {
           enabled: form.channels.telegram.enabled,
           recipients: splitRecipients(form.channels.telegram.recipients_text),
+        },
+        wxpush: {
+          enabled: form.channels.wxpush.enabled,
+          base_url: form.channels.wxpush.base_url.trim(),
+          api_token: form.channels.wxpush.api_token.trim(),
+          groups: splitRecipients(form.channels.wxpush.groups_text),
         },
       },
       scenes: {
@@ -420,6 +445,44 @@ defineExpose({ save, submitting })
                   rows="5"
                   :placeholder="t('admin.settings.notification.channels.telegram.recipientsPlaceholder')"
                 />
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-border">
+            <div class="border-b border-border bg-muted/30 px-4 py-3">
+              <h3 class="text-sm font-semibold">{{ t('admin.settings.notification.channels.wxpush.title') }}</h3>
+            </div>
+            <div class="space-y-3 p-4">
+              <div class="flex items-center gap-2">
+                <Switch v-model="form.channels.wxpush.enabled" />
+                <Label class="text-sm">{{ t('admin.settings.notification.channels.wxpush.enabled') }}</Label>
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.baseURL') }}</label>
+                <Input
+                  v-model="form.channels.wxpush.base_url"
+                  :placeholder="t('admin.settings.notification.channels.wxpush.baseURLPlaceholder')"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.apiToken') }}</label>
+                <Input
+                  v-model="form.channels.wxpush.api_token"
+                  type="password"
+                  autocomplete="new-password"
+                  :placeholder="form.channels.wxpush.has_api_token ? t('admin.settings.notification.channels.wxpush.apiTokenPlaceholderKeep') : t('admin.settings.notification.channels.wxpush.apiTokenPlaceholder')"
+                />
+                <p class="text-xs text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.apiTokenHint') }}</p>
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.groups') }}</label>
+                <Textarea
+                  v-model="form.channels.wxpush.groups_text"
+                  rows="3"
+                  :placeholder="t('admin.settings.notification.channels.wxpush.groupsPlaceholder')"
+                />
+                <p class="text-xs text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.groupsHint') }}</p>
               </div>
             </div>
           </div>

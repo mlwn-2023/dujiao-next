@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -41,10 +42,19 @@ type NotificationChannelSetting struct {
 	Recipients []string `json:"recipients"`
 }
 
+// NotificationWXPushChannelSetting 自托管 WXPush 通知渠道配置。
+type NotificationWXPushChannelSetting struct {
+	Enabled  bool     `json:"enabled"`
+	BaseURL  string   `json:"base_url"`
+	APIToken string   `json:"api_token"`
+	Groups   []string `json:"groups"`
+}
+
 // NotificationChannelsSetting 通知渠道集合
 type NotificationChannelsSetting struct {
-	Email    NotificationChannelSetting `json:"email"`
-	Telegram NotificationChannelSetting `json:"telegram"`
+	Email    NotificationChannelSetting       `json:"email"`
+	Telegram NotificationChannelSetting       `json:"telegram"`
+	WXPush   NotificationWXPushChannelSetting `json:"wxpush"`
 }
 
 // NotificationSceneSetting 通知场景开关
@@ -104,14 +114,24 @@ type NotificationCenterSettingPatch struct {
 
 // NotificationChannelsPatch 通知渠道补丁
 type NotificationChannelsPatch struct {
-	Email    *NotificationChannelPatch `json:"email"`
-	Telegram *NotificationChannelPatch `json:"telegram"`
+	Email    *NotificationChannelPatch       `json:"email"`
+	Telegram *NotificationChannelPatch       `json:"telegram"`
+	WXPush   *NotificationWXPushChannelPatch `json:"wxpush"`
 }
 
 // NotificationChannelPatch 通知渠道补丁
 type NotificationChannelPatch struct {
 	Enabled    *bool     `json:"enabled"`
 	Recipients *[]string `json:"recipients"`
+}
+
+// NotificationWXPushChannelPatch 自托管 WXPush 通知渠道补丁。
+// APIToken 为空时保留已保存的 Token，避免管理端回显敏感值。
+type NotificationWXPushChannelPatch struct {
+	Enabled  *bool     `json:"enabled"`
+	BaseURL  *string   `json:"base_url"`
+	APIToken *string   `json:"api_token"`
+	Groups   *[]string `json:"groups"`
 }
 
 // NotificationScenePatch 通知场景补丁
@@ -155,6 +175,12 @@ func NotificationCenterDefaultSetting() NotificationCenterSetting {
 			Telegram: NotificationChannelSetting{
 				Enabled:    false,
 				Recipients: []string{},
+			},
+			WXPush: NotificationWXPushChannelSetting{
+				Enabled:  false,
+				BaseURL:  "",
+				APIToken: "",
+				Groups:   []string{},
 			},
 		},
 		Scenes: NotificationSceneSetting{
@@ -234,6 +260,9 @@ func NormalizeNotificationCenterSetting(setting NotificationCenterSetting) Notif
 	setting.DefaultLocale = NormalizeNotificationLocale(setting.DefaultLocale)
 	setting.Channels.Email.Recipients = normalizeEmailRecipients(setting.Channels.Email.Recipients)
 	setting.Channels.Telegram.Recipients = normalizeTelegramRecipients(setting.Channels.Telegram.Recipients)
+	setting.Channels.WXPush.BaseURL = strings.TrimRight(strings.TrimSpace(setting.Channels.WXPush.BaseURL), "/")
+	setting.Channels.WXPush.APIToken = strings.TrimSpace(setting.Channels.WXPush.APIToken)
+	setting.Channels.WXPush.Groups = normalizeNotificationStringList(setting.Channels.WXPush.Groups, false)
 	setting.DedupeTTLSeconds = normalizeNotificationDedupeTTL(setting.DedupeTTLSeconds)
 	setting.InventoryAlertIntervalSeconds = NormalizeNotificationInventoryAlertInterval(setting.InventoryAlertIntervalSeconds)
 	setting.PaymentOrderAlertIntervalSeconds = NormalizeNotificationPaymentOrderAlertInterval(setting.PaymentOrderAlertIntervalSeconds)
@@ -270,6 +299,18 @@ func ValidateNotificationCenterSetting(setting NotificationCenterSetting) error 
 			}
 		}
 	}
+	if normalized.Channels.WXPush.Enabled {
+		if normalized.Channels.WXPush.BaseURL == "" {
+			return fmt.Errorf("%w: WXPush 渠道已启用但未配置服务地址", ErrNotificationConfigInvalid)
+		}
+		if normalized.Channels.WXPush.APIToken == "" {
+			return fmt.Errorf("%w: WXPush 渠道已启用但未配置 API Token", ErrNotificationConfigInvalid)
+		}
+		parsed, err := url.Parse(normalized.Channels.WXPush.BaseURL)
+		if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.User != nil {
+			return fmt.Errorf("%w: WXPush 服务地址格式不合法", ErrNotificationConfigInvalid)
+		}
+	}
 
 	if normalized.DedupeTTLSeconds < 30 || normalized.DedupeTTLSeconds > 86400 {
 		return fmt.Errorf("%w: 去重时长需在 30-86400 秒之间", ErrNotificationConfigInvalid)
@@ -300,6 +341,12 @@ func NotificationCenterSettingToMap(setting NotificationCenterSetting) map[strin
 				"enabled":    normalized.Channels.Telegram.Enabled,
 				"recipients": settingsvalue.CloneStringSlice(normalized.Channels.Telegram.Recipients),
 			},
+			"wxpush": map[string]interface{}{
+				"enabled":   normalized.Channels.WXPush.Enabled,
+				"base_url":  normalized.Channels.WXPush.BaseURL,
+				"api_token": normalized.Channels.WXPush.APIToken,
+				"groups":    settingsvalue.CloneStringSlice(normalized.Channels.WXPush.Groups),
+			},
 		},
 		"scenes": map[string]interface{}{
 			"wallet_recharge_success":    normalized.Scenes.WalletRechargeSuccess,
@@ -324,7 +371,12 @@ func NotificationCenterSettingToMap(setting NotificationCenterSetting) map[strin
 // MaskNotificationCenterSettingForAdmin 返回管理端可用配置
 func MaskNotificationCenterSettingForAdmin(setting NotificationCenterSetting) jsonmap.JSON {
 	normalized := NormalizeNotificationCenterSetting(setting)
-	return jsonmap.JSON(NotificationCenterSettingToMap(normalized))
+	masked := NotificationCenterSettingToMap(normalized)
+	channels, _ := masked["channels"].(map[string]interface{})
+	wxpush, _ := channels["wxpush"].(map[string]interface{})
+	wxpush["api_token"] = ""
+	wxpush["has_api_token"] = normalized.Channels.WXPush.APIToken != ""
+	return jsonmap.JSON(masked)
 }
 
 // ApplyNotificationCenterSettingPatch 把补丁应用到当前通知中心配置并完成校验。
@@ -363,6 +415,22 @@ func ApplyNotificationCenterSettingPatch(current NotificationCenterSetting, patc
 			}
 			if patch.Channels.Telegram.Recipients != nil {
 				next.Channels.Telegram.Recipients = settingsvalue.CloneStringSlice(*patch.Channels.Telegram.Recipients)
+			}
+		}
+		if patch.Channels.WXPush != nil {
+			if patch.Channels.WXPush.Enabled != nil {
+				next.Channels.WXPush.Enabled = *patch.Channels.WXPush.Enabled
+			}
+			if patch.Channels.WXPush.BaseURL != nil {
+				next.Channels.WXPush.BaseURL = *patch.Channels.WXPush.BaseURL
+			}
+			if patch.Channels.WXPush.APIToken != nil {
+				if token := strings.TrimSpace(*patch.Channels.WXPush.APIToken); token != "" {
+					next.Channels.WXPush.APIToken = token
+				}
+			}
+			if patch.Channels.WXPush.Groups != nil {
+				next.Channels.WXPush.Groups = settingsvalue.CloneStringSlice(*patch.Channels.WXPush.Groups)
 			}
 		}
 	}
@@ -469,6 +537,12 @@ func DecodeNotificationCenterSetting(raw jsonmap.JSON, fallback NotificationCent
 			next.Channels.Telegram.Enabled = settingsvalue.ReadBool(telegramMap, "enabled", next.Channels.Telegram.Enabled)
 			next.Channels.Telegram.Recipients = settingsvalue.ReadStringList(telegramMap, "recipients", next.Channels.Telegram.Recipients)
 		}
+		if wxpushMap := settingsvalue.ToStringAnyMap(channelsMap["wxpush"]); wxpushMap != nil {
+			next.Channels.WXPush.Enabled = settingsvalue.ReadBool(wxpushMap, "enabled", next.Channels.WXPush.Enabled)
+			next.Channels.WXPush.BaseURL = settingsvalue.ReadString(wxpushMap, "base_url", next.Channels.WXPush.BaseURL)
+			next.Channels.WXPush.APIToken = settingsvalue.ReadString(wxpushMap, "api_token", next.Channels.WXPush.APIToken)
+			next.Channels.WXPush.Groups = settingsvalue.ReadStringList(wxpushMap, "groups", next.Channels.WXPush.Groups)
+		}
 	}
 
 	if scenesMap := settingsvalue.ToStringAnyMap(raw["scenes"]); scenesMap != nil {
@@ -495,6 +569,7 @@ func DecodeNotificationCenterSetting(raw jsonmap.JSON, fallback NotificationCent
 	if !legacyEnabled {
 		next.Channels.Email.Enabled = false
 		next.Channels.Telegram.Enabled = false
+		next.Channels.WXPush.Enabled = false
 	}
 
 	return next

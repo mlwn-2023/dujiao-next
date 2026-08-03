@@ -36,6 +36,15 @@ func (notificationEmailStub) SendCustomEmail(recipient, _, _ string) error {
 	return nil
 }
 
+type notificationWXPushStub struct {
+	inputs []contract.WXPushSendInput
+}
+
+func (s *notificationWXPushStub) Send(_ context.Context, input contract.WXPushSendInput) error {
+	s.inputs = append(s.inputs, input)
+	return nil
+}
+
 type notificationLogRepositoryStub struct {
 	items []domain.NotificationLog
 }
@@ -93,8 +102,54 @@ func setupLogService(t *testing.T) (*Service, *LogService) {
 			},
 		},
 	}
-	service := NewService(notificationSettingsStub{notification: setting}, notificationEmailStub{}, nil, nil, logService, nil)
+	service := NewService(notificationSettingsStub{notification: setting}, notificationEmailStub{}, nil, nil, logService, nil, nil)
 	return service, logService
+}
+
+func TestServiceSendTestUsesWXPushSettingsAndGroupOverride(t *testing.T) {
+	setting := settingsmessaging.NotificationCenterDefaultSetting()
+	setting.DefaultLocale = constants.LocaleZhCN
+	setting.Channels.WXPush = settingsmessaging.NotificationWXPushChannelSetting{
+		Enabled:  true,
+		BaseURL:  "https://push.example.com",
+		APIToken: "secret-token",
+		Groups:   []string{"默认分组"},
+	}
+
+	gateway := &notificationWXPushStub{}
+	logService := NewLogService(&notificationLogRepositoryStub{})
+	service := NewService(notificationSettingsStub{notification: setting}, nil, nil, nil, logService, nil, gateway)
+	err := service.SendTest(context.Background(), contract.TestSendInput{
+		Channel: "wxpush",
+		Target:  "服务器告警|管理员",
+		Scene:   constants.NotificationEventOrderPaidSuccess,
+		Locale:  constants.LocaleZhCN,
+	})
+	if err != nil {
+		t.Fatalf("SendTest() error = %v", err)
+	}
+	if len(gateway.inputs) != 1 {
+		t.Fatalf("expected one wxpush request, got %d", len(gateway.inputs))
+	}
+	input := gateway.inputs[0]
+	if input.BaseURL != "https://push.example.com" || input.APIToken != "secret-token" {
+		t.Fatalf("unexpected connection settings: %#v", input)
+	}
+	if len(input.Groups) != 2 || input.Groups[0] != "服务器告警" || input.Groups[1] != "管理员" {
+		t.Fatalf("unexpected groups: %#v", input.Groups)
+	}
+	if input.Title == "" || input.Body == "" {
+		t.Fatalf("expected rendered message, got %#v", input)
+	}
+
+	isTest := true
+	logs, total, err := logService.ListForAdmin(contract.LogListFilter{Page: 1, PageSize: 10, IsTest: &isTest})
+	if err != nil || total != 1 || len(logs) != 1 {
+		t.Fatalf("unexpected logs: total=%d len=%d err=%v", total, len(logs), err)
+	}
+	if logs[0].Channel != "wxpush" || logs[0].Recipient != "服务器告警 | 管理员" {
+		t.Fatalf("unexpected log: %#v", logs[0])
+	}
 }
 
 func TestServiceSendTestRecordsSuccessLog(t *testing.T) {

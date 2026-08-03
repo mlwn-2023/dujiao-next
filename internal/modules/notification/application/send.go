@@ -26,7 +26,7 @@ func (s *Service) SendTest(ctx context.Context, input contract.TestSendInput) er
 	}
 	channel := strings.ToLower(strings.TrimSpace(input.Channel))
 	target := strings.TrimSpace(input.Target)
-	if channel == "" || target == "" {
+	if channel == "" || (target == "" && channel != "wxpush") {
 		return contract.ErrConfigInvalid
 	}
 
@@ -85,6 +85,32 @@ func (s *Service) SendTest(ctx context.Context, input contract.TestSendInput) er
 			eventType: scene,
 			channel:   channel,
 			recipient: target,
+			locale:    locale,
+			title:     title,
+			body:      body,
+			variables: variables,
+			isTest:    true,
+			sendErr:   sendErr,
+		})
+		return sendErr
+	case "wxpush":
+		groups := parseWXPushGroups(target, setting.Channels.WXPush.Groups)
+		sendErr := contract.ErrSendFailed
+		gatewayCtx, cancel := detachOutboundRequestContext(ctx)
+		defer cancel()
+		if s.wxpushSender != nil && setting.Channels.WXPush.BaseURL != "" && setting.Channels.WXPush.APIToken != "" {
+			sendErr = s.wxpushSender.Send(gatewayCtx, contract.WXPushSendInput{
+				BaseURL:  setting.Channels.WXPush.BaseURL,
+				APIToken: setting.Channels.WXPush.APIToken,
+				Groups:   groups,
+				Title:    title,
+				Body:     body,
+			})
+		}
+		s.recordSendAttempt(notificationSendAttempt{
+			eventType: scene,
+			channel:   channel,
+			recipient: wxpushRecipientLabel(groups),
 			locale:    locale,
 			title:     title,
 			body:      body,
@@ -191,10 +217,80 @@ func (s *Service) dispatchSingleEvent(ctx context.Context, setting settingsmessa
 			}
 		}
 	}
+	if setting.Channels.WXPush.Enabled {
+		groups := append([]string(nil), setting.Channels.WXPush.Groups...)
+		var sendErr error
+		if s.wxpushSender == nil {
+			sendErr = contract.ErrSendFailed
+		} else {
+			sendErr = s.wxpushSender.Send(ctx, contract.WXPushSendInput{
+				BaseURL:  setting.Channels.WXPush.BaseURL,
+				APIToken: setting.Channels.WXPush.APIToken,
+				Groups:   groups,
+				Title:    title,
+				Body:     body,
+			})
+		}
+		s.recordSendAttempt(notificationSendAttempt{
+			eventType: payload.EventType,
+			bizType:   payload.BizType,
+			bizID:     payload.BizID,
+			channel:   "wxpush",
+			recipient: wxpushRecipientLabel(groups),
+			locale:    locale,
+			title:     title,
+			body:      body,
+			variables: variables,
+			sendErr:   sendErr,
+		})
+		if sendErr != nil {
+			logger.Warnw("notification_wxpush_send_failed",
+				"event_type", payload.EventType,
+				"biz_type", payload.BizType,
+				"biz_id", payload.BizID,
+				"recipient", wxpushRecipientLabel(groups),
+				"error", sendErr,
+			)
+			if firstErr == nil {
+				firstErr = sendErr
+			}
+		}
+	}
 	if firstErr != nil {
 		return fmt.Errorf("%w: %v", contract.ErrSendFailed, firstErr)
 	}
 	return nil
+}
+
+func parseWXPushGroups(target string, fallback []string) []string {
+	raw := strings.TrimSpace(target)
+	if raw == "" {
+		return append([]string(nil), fallback...)
+	}
+	items := strings.FieldsFunc(raw, func(r rune) bool {
+		return r == '|' || r == ',' || r == '\n' || r == '\r'
+	})
+	result := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		group := strings.TrimSpace(item)
+		if group == "" {
+			continue
+		}
+		if _, ok := seen[group]; ok {
+			continue
+		}
+		seen[group] = struct{}{}
+		result = append(result, group)
+	}
+	return result
+}
+
+func wxpushRecipientLabel(groups []string) string {
+	if len(groups) == 0 {
+		return "all"
+	}
+	return strings.Join(groups, " | ")
 }
 
 type notificationSendAttempt struct {

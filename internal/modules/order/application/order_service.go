@@ -449,9 +449,9 @@ func (s *OrderService) createOrder(input orderCreateParams) (*orderdomain.Order,
 	}
 
 	// 仅允许钱包余额支付时，在创建订单（锁库存）前预校验余额是否充足
-	if s.settingService != nil && s.settingService.GetWalletOnlyPayment() {
+	if s.settingService != nil && s.settingService.GetWalletOnlyPayment() && !input.IsGuest {
 		if input.UserID == 0 {
-			// 游客无钱包，wallet-only 模式下不允许下单
+			// 非游客订单必须关联有效用户后才能使用钱包。
 			return nil, walletcontract.ErrOnlyPaymentRequired
 		}
 		if s.walletService == nil {

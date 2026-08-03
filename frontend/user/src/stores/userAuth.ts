@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { userAuthAPI } from '../api'
+import { subscribeAuthInvalidated } from '../utils/authSession'
 
 export const useUserAuthStore = defineStore('user-auth', () => {
     const router = useRouter()
@@ -42,6 +43,8 @@ export const useUserAuthStore = defineStore('user-auth', () => {
         localStorage.removeItem('user_token')
         localStorage.removeItem('user_profile')
     }
+
+    subscribeAuthInvalidated(clearAuth)
 
     const sendVerifyCode = async (payload: any) => {
         loading.value = true

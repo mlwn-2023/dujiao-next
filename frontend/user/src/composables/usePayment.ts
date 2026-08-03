@@ -126,7 +126,7 @@ export function usePayment() {
   const backLink = computed(() => (isGuest.value ? '/guest/orders' : '/me/orders'))
   const hasGuestAuth = computed(() => Boolean(guestAuth.value.email && guestAuth.value.order_password))
   const showGuestAuthForm = computed(() => isGuest.value && (!hasGuestAuth.value || guestAuthError.value))
-  const walletOnlyPayment = computed(() => !!appStore.config?.wallet_only_payment)
+  const walletOnlyPayment = computed(() => !isGuest.value && !!appStore.config?.wallet_only_payment)
   const showBalanceOption = computed(() => !isGuest.value)
 
   const filterChannelsByOrder = (list: any[]) => {

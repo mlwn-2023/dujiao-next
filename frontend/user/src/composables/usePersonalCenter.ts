@@ -6,6 +6,7 @@ import { orderStatusLabel, orderStatusVariant } from '../utils/status'
 import type { PageAlert } from '../utils/alerts'
 import { useAppStore } from '../stores/app'
 import { useUserProfileStore } from '../stores/userProfile'
+import { useUserAuthStore } from '../stores/userAuth'
 import type { PublicMemberLevel } from '../api'
 
 export type PersonalSection = 'overview' | 'profile' | 'security' | 'orders' | 'wallet' | 'giftCard' | 'affiliate' | 'reseller' | 'api'
@@ -24,6 +25,7 @@ export function usePersonalCenter(sectionGetter: () => PersonalSection) {
   const { t, locale } = useI18n()
   const appStore = useAppStore()
   const userProfileStore = useUserProfileStore()
+  const userAuthStore = useUserAuthStore()
 
   const sectionItems: PersonalSectionItem[] = [
     { key: 'overview', label: 'personalCenter.tabs.overview', icon: Home },
@@ -149,6 +151,7 @@ export function usePersonalCenter(sectionGetter: () => PersonalSection) {
 
   return {
     userProfileStore,
+    userAuthStore,
     canAccessResellerConsole,
     visibleSectionItems,
     currentSection,

@@ -18,6 +18,10 @@
           <Crown v-else class="h-3.5 w-3.5" />
           {{ levelName(userProfileStore.currentLevel) }}
         </span>
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive" @click="userAuthStore.logout()">
+          <LogOut class="h-3.5 w-3.5" />
+          {{ t('navbar.logout') }}
+        </button>
       </div>
     </header>
 
@@ -189,7 +193,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { Crown, ShoppingBag, ShieldCheck, Percent } from 'lucide-vue-next'
+import { Crown, LogOut, ShoppingBag, ShieldCheck, Percent } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getImageUrl } from '../../utils/image'
@@ -209,7 +213,7 @@ const props = withDefaults(defineProps<{ section?: PersonalSection }>(), {
 })
 
 const {
-  userProfileStore, canAccessResellerConsole, visibleSectionItems, currentSection, globalAlert,
+  userProfileStore, userAuthStore, canAccessResellerConsole, visibleSectionItems, currentSection, globalAlert,
   displayInitial, switchSection, statusLabel, statusVariant, formatMoney, formatDate,
   emailVerifiedLabel, emailVerifiedVariant, discountText, isImagePath, levelName,
 } = usePersonalCenter(() => props.section)

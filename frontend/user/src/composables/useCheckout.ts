@@ -120,7 +120,8 @@ export function useCheckout() {
     return filtered
   })
 
-  const walletOnlyPayment = computed(() => !!appStore.config?.wallet_only_payment)
+  // “仅钱包支付”只约束已登录会员；游客没有钱包，应继续使用公开在线支付渠道。
+  const walletOnlyPayment = computed(() => userAuthStore.isAuthenticated && !!appStore.config?.wallet_only_payment)
   // 分销白标店内后端会清零优惠券/促销/会员/批发等所有折扣（reseller 定价为固定加价），
   // 据此在结算页隐藏优惠券输入与恒为 0 的折扣预览行，避免买家填了无效优惠码。
   const isResellerTenant = computed(() => appStore.isResellerTenant)

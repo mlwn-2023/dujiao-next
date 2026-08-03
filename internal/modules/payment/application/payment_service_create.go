@@ -71,12 +71,6 @@ func (s *PaymentService) CreatePayment(input CreatePaymentInput) (*CreatePayment
 
 	// 在事务外查询设置，避免 SQLite 单连接池下自锁
 	walletOnly := s.settingService != nil && s.settingService.GetWalletOnlyPayment()
-	if walletOnly {
-		input.UseBalance = true
-		if input.ChannelID != 0 {
-			return nil, walletcontract.ErrOnlyPaymentRequired
-		}
-	}
 
 	err := s.paymentRepo.WithinTransaction(func(tx paymentcontract.Transaction) error {
 		preloaded, err := tx.Orders().GetByIDForUpdateWithChildren(input.OrderID)
@@ -95,6 +89,14 @@ func (s *PaymentService) CreatePayment(input CreatePaymentInput) (*CreatePayment
 		}
 		if lockedOrder.ExpiresAt != nil && !lockedOrder.ExpiresAt.After(time.Now()) {
 			return orderapp.ErrOrderStatusInvalid
+		}
+
+		// 游客没有钱包；仅钱包模式只约束会员订单，游客仍通过在线渠道付款。
+		if walletOnly && lockedOrder.UserID > 0 {
+			input.UseBalance = true
+			if input.ChannelID != 0 {
+				return walletcontract.ErrOnlyPaymentRequired
+			}
 		}
 
 		paymentRepo := tx.Payments()

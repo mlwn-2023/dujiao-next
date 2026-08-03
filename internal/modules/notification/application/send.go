@@ -26,7 +26,7 @@ func (s *Service) SendTest(ctx context.Context, input contract.TestSendInput) er
 	}
 	channel := strings.ToLower(strings.TrimSpace(input.Channel))
 	target := strings.TrimSpace(input.Target)
-	if channel == "" || target == "" {
+	if channel == "" || (target == "" && channel != "wxpush") {
 		return contract.ErrConfigInvalid
 	}
 
@@ -57,7 +57,7 @@ func (s *Service) SendTest(ctx context.Context, input contract.TestSendInput) er
 	}
 
 	switch channel {
-	case constants.NotificationChannelEmail:
+	case "email":
 		sendErr := contract.ErrSendFailed
 		if s.emailService != nil {
 			sendErr = s.emailService.SendCustomEmail(target, title, body)
@@ -74,12 +74,12 @@ func (s *Service) SendTest(ctx context.Context, input contract.TestSendInput) er
 			sendErr:   sendErr,
 		})
 		return sendErr
-	case constants.NotificationChannelTelegram:
+	case "telegram":
 		sendErr := contract.ErrSendFailed
 		gatewayCtx, cancel := detachOutboundRequestContext(ctx)
 		defer cancel()
 		if s.telegramSender != nil {
-			sendErr = s.telegramSender.SendMessage(gatewayCtx, target, format.ComposePlainTextMessage(title, body))
+			sendErr = s.telegramSender.SendMessage(gatewayCtx, target, format.ComposeTelegramMessage(title, body))
 		}
 		s.recordSendAttempt(notificationSendAttempt{
 			eventType: scene,
@@ -93,25 +93,24 @@ func (s *Service) SendTest(ctx context.Context, input contract.TestSendInput) er
 			sendErr:   sendErr,
 		})
 		return sendErr
-	case constants.NotificationChannelFeishu:
+	case "wxpush":
+		groups := parseWXPushGroups(target, setting.Channels.WXPush.Groups)
 		sendErr := contract.ErrSendFailed
 		gatewayCtx, cancel := detachOutboundRequestContext(ctx)
 		defer cancel()
-		if s.feishuSender != nil {
-			feishu := setting.Channels.Feishu
-			sendErr = s.feishuSender.SendMessage(
-				gatewayCtx,
-				feishu.AppID,
-				feishu.AppSecret,
-				feishu.ReceiveIDType,
-				target,
-				format.ComposePlainTextMessage(title, body),
-			)
+		if s.wxpushSender != nil && setting.Channels.WXPush.BaseURL != "" && setting.Channels.WXPush.APIToken != "" {
+			sendErr = s.wxpushSender.Send(gatewayCtx, contract.WXPushSendInput{
+				BaseURL:  setting.Channels.WXPush.BaseURL,
+				APIToken: setting.Channels.WXPush.APIToken,
+				Groups:   groups,
+				Title:    title,
+				Body:     body,
+			})
 		}
 		s.recordSendAttempt(notificationSendAttempt{
 			eventType: scene,
 			channel:   channel,
-			recipient: target,
+			recipient: wxpushRecipientLabel(groups),
 			locale:    locale,
 			title:     title,
 			body:      body,
@@ -161,7 +160,7 @@ func (s *Service) dispatchSingleEvent(ctx context.Context, setting settingsmessa
 				eventType: payload.EventType,
 				bizType:   payload.BizType,
 				bizID:     payload.BizID,
-				channel:   constants.NotificationChannelEmail,
+				channel:   "email",
 				recipient: recipient,
 				locale:    locale,
 				title:     title,
@@ -184,7 +183,7 @@ func (s *Service) dispatchSingleEvent(ctx context.Context, setting settingsmessa
 		}
 	}
 	if setting.Channels.Telegram.Enabled && len(setting.Channels.Telegram.Recipients) > 0 {
-		message := format.ComposePlainTextMessage(title, body)
+		message := format.ComposeTelegramMessage(title, body)
 		for _, recipient := range setting.Channels.Telegram.Recipients {
 			var sendErr error
 			if s.telegramSender == nil {
@@ -196,7 +195,7 @@ func (s *Service) dispatchSingleEvent(ctx context.Context, setting settingsmessa
 				eventType: payload.EventType,
 				bizType:   payload.BizType,
 				bizID:     payload.BizID,
-				channel:   constants.NotificationChannelTelegram,
+				channel:   "telegram",
 				recipient: recipient,
 				locale:    locale,
 				title:     title,
@@ -218,45 +217,42 @@ func (s *Service) dispatchSingleEvent(ctx context.Context, setting settingsmessa
 			}
 		}
 	}
-	if setting.Channels.Feishu.Enabled && len(setting.Channels.Feishu.Recipients) > 0 {
-		message := format.ComposePlainTextMessage(title, body)
-		for _, recipient := range setting.Channels.Feishu.Recipients {
-			var sendErr error
-			if s.feishuSender == nil {
-				sendErr = contract.ErrSendFailed
-			} else {
-				sendErr = s.feishuSender.SendMessage(
-					ctx,
-					setting.Channels.Feishu.AppID,
-					setting.Channels.Feishu.AppSecret,
-					setting.Channels.Feishu.ReceiveIDType,
-					recipient,
-					message,
-				)
-			}
-			s.recordSendAttempt(notificationSendAttempt{
-				eventType: payload.EventType,
-				bizType:   payload.BizType,
-				bizID:     payload.BizID,
-				channel:   constants.NotificationChannelFeishu,
-				recipient: recipient,
-				locale:    locale,
-				title:     title,
-				body:      body,
-				variables: variables,
-				sendErr:   sendErr,
+	if setting.Channels.WXPush.Enabled {
+		groups := append([]string(nil), setting.Channels.WXPush.Groups...)
+		var sendErr error
+		if s.wxpushSender == nil {
+			sendErr = contract.ErrSendFailed
+		} else {
+			sendErr = s.wxpushSender.Send(ctx, contract.WXPushSendInput{
+				BaseURL:  setting.Channels.WXPush.BaseURL,
+				APIToken: setting.Channels.WXPush.APIToken,
+				Groups:   groups,
+				Title:    title,
+				Body:     body,
 			})
-			if sendErr != nil {
-				logger.Warnw("notification_feishu_send_failed",
-					"event_type", payload.EventType,
-					"biz_type", payload.BizType,
-					"biz_id", payload.BizID,
-					"recipient", recipient,
-					"error", sendErr,
-				)
-				if firstErr == nil {
-					firstErr = sendErr
-				}
+		}
+		s.recordSendAttempt(notificationSendAttempt{
+			eventType: payload.EventType,
+			bizType:   payload.BizType,
+			bizID:     payload.BizID,
+			channel:   "wxpush",
+			recipient: wxpushRecipientLabel(groups),
+			locale:    locale,
+			title:     title,
+			body:      body,
+			variables: variables,
+			sendErr:   sendErr,
+		})
+		if sendErr != nil {
+			logger.Warnw("notification_wxpush_send_failed",
+				"event_type", payload.EventType,
+				"biz_type", payload.BizType,
+				"biz_id", payload.BizID,
+				"recipient", wxpushRecipientLabel(groups),
+				"error", sendErr,
+			)
+			if firstErr == nil {
+				firstErr = sendErr
 			}
 		}
 	}
@@ -264,6 +260,37 @@ func (s *Service) dispatchSingleEvent(ctx context.Context, setting settingsmessa
 		return fmt.Errorf("%w: %v", contract.ErrSendFailed, firstErr)
 	}
 	return nil
+}
+
+func parseWXPushGroups(target string, fallback []string) []string {
+	raw := strings.TrimSpace(target)
+	if raw == "" {
+		return append([]string(nil), fallback...)
+	}
+	items := strings.FieldsFunc(raw, func(r rune) bool {
+		return r == '|' || r == ',' || r == '\n' || r == '\r'
+	})
+	result := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		group := strings.TrimSpace(item)
+		if group == "" {
+			continue
+		}
+		if _, ok := seen[group]; ok {
+			continue
+		}
+		seen[group] = struct{}{}
+		result = append(result, group)
+	}
+	return result
+}
+
+func wxpushRecipientLabel(groups []string) string {
+	if len(groups) == 0 {
+		return "all"
+	}
+	return strings.Join(groups, " | ")
 }
 
 type notificationSendAttempt struct {

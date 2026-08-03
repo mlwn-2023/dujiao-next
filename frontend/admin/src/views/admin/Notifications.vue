@@ -59,13 +59,12 @@ const notificationData = reactive({
       enabled: false,
       recipients_text: '',
     },
-    feishu: {
+    wxpush: {
       enabled: false,
-      app_id: '',
-      app_secret: '',
-      has_app_secret: false,
-      receive_id_type: 'chat_id',
-      recipients_text: '',
+      base_url: '',
+      api_token: '',
+      has_api_token: false,
+      groups_text: '',
     },
   },
   scenes: {
@@ -146,10 +145,17 @@ const currentChannelTargets = computed(() => {
   if (testForm.channel === 'telegram') {
     return splitRecipients(notificationData.channels.telegram.recipients_text)
   }
-  if (testForm.channel === 'feishu') {
-    return splitRecipients(notificationData.channels.feishu.recipients_text)
+  if (testForm.channel === 'wxpush') {
+    return splitRecipients(notificationData.channels.wxpush.groups_text)
   }
   return splitRecipients(notificationData.channels.email.recipients_text)
+})
+
+const testTargetPlaceholder = computed(() => {
+  if (testForm.channel === 'wxpush') {
+    return t('admin.settings.notification.channels.wxpush.testTargetPlaceholder')
+  }
+  return t('admin.settings.notification.test.targetPlaceholder')
 })
 
 const testScenes = computed(() => [
@@ -185,17 +191,16 @@ const fetchSettings = async () => {
     const notifChannels = notification.channels as Record<string, Record<string, unknown>> | undefined
     const notifEmail = notifChannels?.email
     const notifTelegram = notifChannels?.telegram
-    const notifFeishu = notifChannels?.feishu
+    const notifWXPush = notifChannels?.wxpush
     notificationData.channels.email.enabled = !!notifEmail?.enabled
     notificationData.channels.email.recipients_text = joinRecipients(notifEmail?.recipients)
     notificationData.channels.telegram.enabled = !!notifTelegram?.enabled
     notificationData.channels.telegram.recipients_text = joinRecipients(notifTelegram?.recipients)
-    notificationData.channels.feishu.enabled = !!notifFeishu?.enabled
-    notificationData.channels.feishu.app_id = String(notifFeishu?.app_id || '')
-    notificationData.channels.feishu.app_secret = ''
-    notificationData.channels.feishu.has_app_secret = !!notifFeishu?.has_app_secret
-    notificationData.channels.feishu.receive_id_type = String(notifFeishu?.receive_id_type || 'chat_id')
-    notificationData.channels.feishu.recipients_text = joinRecipients(notifFeishu?.recipients)
+    notificationData.channels.wxpush.enabled = !!notifWXPush?.enabled
+    notificationData.channels.wxpush.base_url = String(notifWXPush?.base_url || '')
+    notificationData.channels.wxpush.api_token = ''
+    notificationData.channels.wxpush.has_api_token = !!notifWXPush?.has_api_token
+    notificationData.channels.wxpush.groups_text = joinRecipients(notifWXPush?.groups)
 
     const notifScenes = notification.scenes as Record<string, unknown> | undefined
     notificationData.scenes.wallet_recharge_success = !!notifScenes?.wallet_recharge_success
@@ -267,7 +272,7 @@ const changeNotificationLogPage = (page: number) => {
 
 const notificationChannelLabel = (value: string) => {
   if (value === 'telegram') return t('admin.settings.notification.channels.telegram.title')
-  if (value === 'feishu') return t('admin.settings.notification.channels.feishu.title')
+  if (value === 'wxpush') return t('admin.settings.notification.channels.wxpush.title')
   return t('admin.settings.notification.channels.email.title')
 }
 
@@ -298,7 +303,7 @@ const notificationLogTypeLabel = (value: boolean) => {
 }
 
 const sendNotificationTest = async () => {
-  if (testForm.target.trim() === '') {
+  if (testForm.channel !== 'wxpush' && testForm.target.trim() === '') {
     notifyError(t('admin.settings.notification.test.targetRequired'))
     return
   }
@@ -368,7 +373,7 @@ onMounted(async () => {
             <SelectContent>
               <SelectItem value="email">{{ t('admin.settings.notification.channels.email.title') }}</SelectItem>
               <SelectItem value="telegram">{{ t('admin.settings.notification.channels.telegram.title') }}</SelectItem>
-              <SelectItem value="feishu">{{ t('admin.settings.notification.channels.feishu.title') }}</SelectItem>
+              <SelectItem value="wxpush">{{ t('admin.settings.notification.channels.wxpush.title') }}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -395,7 +400,7 @@ onMounted(async () => {
               {{ t('admin.settings.notification.test.useFirstRecipient') }}
             </button>
           </div>
-          <Input v-model="testForm.target" class="h-10" :placeholder="t('admin.settings.notification.test.targetPlaceholder')" />
+          <Input v-model="testForm.target" class="h-10" :placeholder="testTargetPlaceholder" />
         </div>
       </div>
       <div v-if="currentChannelTargets.length > 0" class="mt-3 flex flex-wrap gap-2">
@@ -432,7 +437,7 @@ onMounted(async () => {
             <SelectItem value="__all__">{{ t('admin.settings.notification.logs.filters.allChannels') }}</SelectItem>
             <SelectItem value="email">{{ t('admin.settings.notification.channels.email.title') }}</SelectItem>
             <SelectItem value="telegram">{{ t('admin.settings.notification.channels.telegram.title') }}</SelectItem>
-            <SelectItem value="feishu">{{ t('admin.settings.notification.channels.feishu.title') }}</SelectItem>
+            <SelectItem value="wxpush">{{ t('admin.settings.notification.channels.wxpush.title') }}</SelectItem>
           </SelectContent>
         </Select>
         <Select v-model="notificationLogFilters.status" @update:modelValue="handleNotificationLogSearch">

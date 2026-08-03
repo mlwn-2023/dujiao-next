@@ -10,7 +10,6 @@ import (
 	settingsstorefront "github.com/dujiao-next/internal/modules/settings/schema/storefront"
 	"github.com/dujiao-next/internal/queue"
 	"github.com/dujiao-next/internal/shared/jsonmap"
-	"github.com/dujiao-next/internal/shared/mailbrand"
 	"github.com/dujiao-next/internal/shared/money"
 )
 
@@ -38,7 +37,6 @@ type OrderStatusEmailInput struct {
 	IsGuest           bool
 	AttachmentName    string
 	AttachmentContent string
-	MailBrand         mailbrand.Brand
 }
 
 type DispatchQueue interface {
@@ -55,8 +53,16 @@ type TelegramSender interface {
 	SendMessage(ctx context.Context, chatID, message string) error
 }
 
-type FeishuSender interface {
-	SendMessage(ctx context.Context, appID, appSecret, receiveIDType, receiveID, message string) error
+type WXPushSendInput struct {
+	BaseURL  string
+	APIToken string
+	Groups   []string
+	Title    string
+	Body     string
+}
+
+type WXPushSender interface {
+	Send(ctx context.Context, input WXPushSendInput) error
 }
 
 type LogRepository interface {

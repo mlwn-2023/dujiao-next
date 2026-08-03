@@ -36,13 +36,12 @@ interface NotificationData {
       enabled: boolean
       recipients_text: string
     }
-    feishu: {
+    wxpush: {
       enabled: boolean
-      app_id: string
-      app_secret: string
-      has_app_secret: boolean
-      receive_id_type: string
-      recipients_text: string
+      base_url: string
+      api_token: string
+      has_api_token: boolean
+      groups_text: string
     }
   }
   scenes: {
@@ -107,13 +106,12 @@ const form = reactive({
       enabled: false,
       recipients_text: '',
     },
-    feishu: {
+    wxpush: {
       enabled: false,
-      app_id: '',
-      app_secret: '',
-      has_app_secret: false,
-      receive_id_type: 'chat_id',
-      recipients_text: '',
+      base_url: '',
+      api_token: '',
+      has_api_token: false,
+      groups_text: '',
     },
   },
   scenes: {
@@ -141,12 +139,11 @@ const syncFromProps = () => {
   form.channels.email.recipients_text = props.data.channels.email.recipients_text
   form.channels.telegram.enabled = props.data.channels.telegram.enabled
   form.channels.telegram.recipients_text = props.data.channels.telegram.recipients_text
-  form.channels.feishu.enabled = props.data.channels.feishu.enabled
-  form.channels.feishu.app_id = props.data.channels.feishu.app_id
-  form.channels.feishu.app_secret = ''
-  form.channels.feishu.has_app_secret = props.data.channels.feishu.has_app_secret
-  form.channels.feishu.receive_id_type = props.data.channels.feishu.receive_id_type || 'chat_id'
-  form.channels.feishu.recipients_text = props.data.channels.feishu.recipients_text
+  form.channels.wxpush.enabled = props.data.channels.wxpush.enabled
+  form.channels.wxpush.base_url = props.data.channels.wxpush.base_url
+  form.channels.wxpush.api_token = ''
+  form.channels.wxpush.has_api_token = props.data.channels.wxpush.has_api_token
+  form.channels.wxpush.groups_text = props.data.channels.wxpush.groups_text
   Object.assign(form.scenes, props.data.scenes)
   form.templates.wallet_recharge_success = deepCloneTemplate(props.data.templates.wallet_recharge_success)
   form.templates.order_paid_success = deepCloneTemplate(props.data.templates.order_paid_success)
@@ -281,12 +278,11 @@ const save = async () => {
           enabled: form.channels.telegram.enabled,
           recipients: splitRecipients(form.channels.telegram.recipients_text),
         },
-        feishu: {
-          enabled: form.channels.feishu.enabled,
-          app_id: form.channels.feishu.app_id.trim(),
-          app_secret: form.channels.feishu.app_secret.trim(),
-          receive_id_type: form.channels.feishu.receive_id_type,
-          recipients: splitRecipients(form.channels.feishu.recipients_text),
+        wxpush: {
+          enabled: form.channels.wxpush.enabled,
+          base_url: form.channels.wxpush.base_url.trim(),
+          api_token: form.channels.wxpush.api_token.trim(),
+          groups: splitRecipients(form.channels.wxpush.groups_text),
         },
       },
       scenes: {
@@ -453,66 +449,41 @@ defineExpose({ save, submitting })
             </div>
           </div>
 
-          <div class="rounded-xl border border-border md:col-span-2">
+          <div class="rounded-xl border border-border">
             <div class="border-b border-border bg-muted/30 px-4 py-3">
-              <h3 class="text-sm font-semibold">{{ t('admin.settings.notification.channels.feishu.title') }}</h3>
-              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.notification.channels.feishu.subtitle') }}</p>
+              <h3 class="text-sm font-semibold">{{ t('admin.settings.notification.channels.wxpush.title') }}</h3>
             </div>
-            <div class="space-y-4 p-4">
+            <div class="space-y-3 p-4">
               <div class="flex items-center gap-2">
-                <Switch v-model="form.channels.feishu.enabled" />
-                <Label class="text-sm">{{ t('admin.settings.notification.channels.feishu.enabled') }}</Label>
+                <Switch v-model="form.channels.wxpush.enabled" />
+                <Label class="text-sm">{{ t('admin.settings.notification.channels.wxpush.enabled') }}</Label>
               </div>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div class="space-y-2">
-                  <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.feishu.appID') }}</label>
-                  <Input
-                    v-model="form.channels.feishu.app_id"
-                    :placeholder="t('admin.settings.notification.channels.feishu.appIDPlaceholder')"
-                    autocomplete="off"
-                  />
-                </div>
-                <div class="space-y-2">
-                  <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.feishu.appSecret') }}</label>
-                  <Input
-                    v-model="form.channels.feishu.app_secret"
-                    type="password"
-                    :placeholder="t('admin.settings.notification.channels.feishu.appSecretPlaceholder')"
-                    autocomplete="new-password"
-                  />
-                  <p class="text-xs text-muted-foreground">
-                    {{ t(form.channels.feishu.has_app_secret
-                      ? 'admin.settings.notification.channels.feishu.appSecretHintKeep'
-                      : 'admin.settings.notification.channels.feishu.appSecretHintEmpty') }}
-                  </p>
-                </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.baseURL') }}</label>
+                <Input
+                  v-model="form.channels.wxpush.base_url"
+                  :placeholder="t('admin.settings.notification.channels.wxpush.baseURLPlaceholder')"
+                />
               </div>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div class="space-y-2">
-                  <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.feishu.receiveIDType') }}</label>
-                  <Select v-model="form.channels.feishu.receive_id_type">
-                    <SelectTrigger class="h-10">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="chat_id">{{ t('admin.settings.notification.channels.feishu.receiveIDTypes.chatID') }}</SelectItem>
-                      <SelectItem value="open_id">{{ t('admin.settings.notification.channels.feishu.receiveIDTypes.openID') }}</SelectItem>
-                      <SelectItem value="user_id">{{ t('admin.settings.notification.channels.feishu.receiveIDTypes.userID') }}</SelectItem>
-                      <SelectItem value="union_id">{{ t('admin.settings.notification.channels.feishu.receiveIDTypes.unionID') }}</SelectItem>
-                      <SelectItem value="email">{{ t('admin.settings.notification.channels.feishu.receiveIDTypes.email') }}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div class="space-y-2">
-                  <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.feishu.recipients') }}</label>
-                  <Textarea
-                    v-model="form.channels.feishu.recipients_text"
-                    rows="4"
-                    :placeholder="t('admin.settings.notification.channels.feishu.recipientsPlaceholder')"
-                  />
-                </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.apiToken') }}</label>
+                <Input
+                  v-model="form.channels.wxpush.api_token"
+                  type="password"
+                  autocomplete="new-password"
+                  :placeholder="form.channels.wxpush.has_api_token ? t('admin.settings.notification.channels.wxpush.apiTokenPlaceholderKeep') : t('admin.settings.notification.channels.wxpush.apiTokenPlaceholder')"
+                />
+                <p class="text-xs text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.apiTokenHint') }}</p>
               </div>
-              <p class="text-xs text-muted-foreground">{{ t('admin.settings.notification.channels.feishu.permissionHint') }}</p>
+              <div class="space-y-2">
+                <label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.groups') }}</label>
+                <Textarea
+                  v-model="form.channels.wxpush.groups_text"
+                  rows="3"
+                  :placeholder="t('admin.settings.notification.channels.wxpush.groupsPlaceholder')"
+                />
+                <p class="text-xs text-muted-foreground">{{ t('admin.settings.notification.channels.wxpush.groupsHint') }}</p>
+              </div>
             </div>
           </div>
         </div>

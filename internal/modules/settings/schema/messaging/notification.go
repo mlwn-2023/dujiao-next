@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -21,22 +22,6 @@ var notificationSupportedLocales = map[string]struct{}{
 }
 
 var telegramChatIDPattern = regexp.MustCompile(`^-?\d{5,20}$`)
-
-const (
-	FeishuReceiveIDTypeChatID  = "chat_id"
-	FeishuReceiveIDTypeOpenID  = "open_id"
-	FeishuReceiveIDTypeUserID  = "user_id"
-	FeishuReceiveIDTypeUnionID = "union_id"
-	FeishuReceiveIDTypeEmail   = "email"
-)
-
-var feishuSupportedReceiveIDTypes = map[string]struct{}{
-	FeishuReceiveIDTypeChatID:  {},
-	FeishuReceiveIDTypeOpenID:  {},
-	FeishuReceiveIDTypeUserID:  {},
-	FeishuReceiveIDTypeUnionID: {},
-	FeishuReceiveIDTypeEmail:   {},
-}
 
 const (
 	notificationInventoryAlertIntervalDefaultSeconds = 1800
@@ -57,20 +42,19 @@ type NotificationChannelSetting struct {
 	Recipients []string `json:"recipients"`
 }
 
-// FeishuNotificationChannelSetting 飞书自建应用机器人通知配置。
-type FeishuNotificationChannelSetting struct {
-	Enabled       bool     `json:"enabled"`
-	AppID         string   `json:"app_id"`
-	AppSecret     string   `json:"app_secret"`
-	ReceiveIDType string   `json:"receive_id_type"`
-	Recipients    []string `json:"recipients"`
+// NotificationWXPushChannelSetting 自托管 WXPush 通知渠道配置。
+type NotificationWXPushChannelSetting struct {
+	Enabled  bool     `json:"enabled"`
+	BaseURL  string   `json:"base_url"`
+	APIToken string   `json:"api_token"`
+	Groups   []string `json:"groups"`
 }
 
 // NotificationChannelsSetting 通知渠道集合
 type NotificationChannelsSetting struct {
 	Email    NotificationChannelSetting       `json:"email"`
 	Telegram NotificationChannelSetting       `json:"telegram"`
-	Feishu   FeishuNotificationChannelSetting `json:"feishu"`
+	WXPush   NotificationWXPushChannelSetting `json:"wxpush"`
 }
 
 // NotificationSceneSetting 通知场景开关
@@ -132,7 +116,7 @@ type NotificationCenterSettingPatch struct {
 type NotificationChannelsPatch struct {
 	Email    *NotificationChannelPatch       `json:"email"`
 	Telegram *NotificationChannelPatch       `json:"telegram"`
-	Feishu   *FeishuNotificationChannelPatch `json:"feishu"`
+	WXPush   *NotificationWXPushChannelPatch `json:"wxpush"`
 }
 
 // NotificationChannelPatch 通知渠道补丁
@@ -141,13 +125,13 @@ type NotificationChannelPatch struct {
 	Recipients *[]string `json:"recipients"`
 }
 
-// FeishuNotificationChannelPatch 飞书机器人通知配置补丁。
-type FeishuNotificationChannelPatch struct {
-	Enabled       *bool     `json:"enabled"`
-	AppID         *string   `json:"app_id"`
-	AppSecret     *string   `json:"app_secret"`
-	ReceiveIDType *string   `json:"receive_id_type"`
-	Recipients    *[]string `json:"recipients"`
+// NotificationWXPushChannelPatch 自托管 WXPush 通知渠道补丁。
+// APIToken 为空时保留已保存的 Token，避免管理端回显敏感值。
+type NotificationWXPushChannelPatch struct {
+	Enabled  *bool     `json:"enabled"`
+	BaseURL  *string   `json:"base_url"`
+	APIToken *string   `json:"api_token"`
+	Groups   *[]string `json:"groups"`
 }
 
 // NotificationScenePatch 通知场景补丁
@@ -192,10 +176,11 @@ func NotificationCenterDefaultSetting() NotificationCenterSetting {
 				Enabled:    false,
 				Recipients: []string{},
 			},
-			Feishu: FeishuNotificationChannelSetting{
-				Enabled:       false,
-				ReceiveIDType: FeishuReceiveIDTypeChatID,
-				Recipients:    []string{},
+			WXPush: NotificationWXPushChannelSetting{
+				Enabled:  false,
+				BaseURL:  "",
+				APIToken: "",
+				Groups:   []string{},
 			},
 		},
 		Scenes: NotificationSceneSetting{
@@ -275,10 +260,9 @@ func NormalizeNotificationCenterSetting(setting NotificationCenterSetting) Notif
 	setting.DefaultLocale = NormalizeNotificationLocale(setting.DefaultLocale)
 	setting.Channels.Email.Recipients = normalizeEmailRecipients(setting.Channels.Email.Recipients)
 	setting.Channels.Telegram.Recipients = normalizeTelegramRecipients(setting.Channels.Telegram.Recipients)
-	setting.Channels.Feishu.AppID = strings.TrimSpace(setting.Channels.Feishu.AppID)
-	setting.Channels.Feishu.AppSecret = strings.TrimSpace(setting.Channels.Feishu.AppSecret)
-	setting.Channels.Feishu.ReceiveIDType = normalizeFeishuReceiveIDType(setting.Channels.Feishu.ReceiveIDType)
-	setting.Channels.Feishu.Recipients = normalizeFeishuRecipients(setting.Channels.Feishu.Recipients, setting.Channels.Feishu.ReceiveIDType)
+	setting.Channels.WXPush.BaseURL = strings.TrimRight(strings.TrimSpace(setting.Channels.WXPush.BaseURL), "/")
+	setting.Channels.WXPush.APIToken = strings.TrimSpace(setting.Channels.WXPush.APIToken)
+	setting.Channels.WXPush.Groups = normalizeNotificationStringList(setting.Channels.WXPush.Groups, false)
 	setting.DedupeTTLSeconds = normalizeNotificationDedupeTTL(setting.DedupeTTLSeconds)
 	setting.InventoryAlertIntervalSeconds = NormalizeNotificationInventoryAlertInterval(setting.InventoryAlertIntervalSeconds)
 	setting.PaymentOrderAlertIntervalSeconds = NormalizeNotificationPaymentOrderAlertInterval(setting.PaymentOrderAlertIntervalSeconds)
@@ -301,9 +285,6 @@ func ValidateNotificationCenterSetting(setting NotificationCenterSetting) error 
 	if normalized.Channels.Telegram.Enabled && len(normalized.Channels.Telegram.Recipients) == 0 {
 		return fmt.Errorf("%w: Telegram 渠道已启用但未配置接收人ID", ErrNotificationConfigInvalid)
 	}
-	if normalized.Channels.Feishu.Enabled && len(normalized.Channels.Feishu.Recipients) == 0 {
-		return fmt.Errorf("%w: 飞书渠道已启用但未配置接收人ID", ErrNotificationConfigInvalid)
-	}
 	if normalized.Channels.Email.Enabled {
 		for _, recipient := range normalized.Channels.Email.Recipients {
 			if _, err := mail.ParseAddress(recipient); err != nil {
@@ -318,22 +299,16 @@ func ValidateNotificationCenterSetting(setting NotificationCenterSetting) error 
 			}
 		}
 	}
-	if normalized.Channels.Feishu.Enabled {
-		if normalized.Channels.Feishu.AppID == "" {
-			return fmt.Errorf("%w: 飞书 App ID 不能为空", ErrNotificationConfigInvalid)
+	if normalized.Channels.WXPush.Enabled {
+		if normalized.Channels.WXPush.BaseURL == "" {
+			return fmt.Errorf("%w: WXPush 渠道已启用但未配置服务地址", ErrNotificationConfigInvalid)
 		}
-		if normalized.Channels.Feishu.AppSecret == "" {
-			return fmt.Errorf("%w: 飞书 App Secret 不能为空", ErrNotificationConfigInvalid)
+		if normalized.Channels.WXPush.APIToken == "" {
+			return fmt.Errorf("%w: WXPush 渠道已启用但未配置 API Token", ErrNotificationConfigInvalid)
 		}
-		if _, ok := feishuSupportedReceiveIDTypes[normalized.Channels.Feishu.ReceiveIDType]; !ok {
-			return fmt.Errorf("%w: 飞书接收人ID类型不合法", ErrNotificationConfigInvalid)
-		}
-		if normalized.Channels.Feishu.ReceiveIDType == FeishuReceiveIDTypeEmail {
-			for _, recipient := range normalized.Channels.Feishu.Recipients {
-				if _, err := mail.ParseAddress(recipient); err != nil {
-					return fmt.Errorf("%w: 飞书接收邮箱格式不合法", ErrNotificationConfigInvalid)
-				}
-			}
+		parsed, err := url.Parse(normalized.Channels.WXPush.BaseURL)
+		if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.User != nil {
+			return fmt.Errorf("%w: WXPush 服务地址格式不合法", ErrNotificationConfigInvalid)
 		}
 	}
 
@@ -366,12 +341,11 @@ func NotificationCenterSettingToMap(setting NotificationCenterSetting) map[strin
 				"enabled":    normalized.Channels.Telegram.Enabled,
 				"recipients": settingsvalue.CloneStringSlice(normalized.Channels.Telegram.Recipients),
 			},
-			"feishu": map[string]interface{}{
-				"enabled":         normalized.Channels.Feishu.Enabled,
-				"app_id":          normalized.Channels.Feishu.AppID,
-				"app_secret":      normalized.Channels.Feishu.AppSecret,
-				"receive_id_type": normalized.Channels.Feishu.ReceiveIDType,
-				"recipients":      settingsvalue.CloneStringSlice(normalized.Channels.Feishu.Recipients),
+			"wxpush": map[string]interface{}{
+				"enabled":   normalized.Channels.WXPush.Enabled,
+				"base_url":  normalized.Channels.WXPush.BaseURL,
+				"api_token": normalized.Channels.WXPush.APIToken,
+				"groups":    settingsvalue.CloneStringSlice(normalized.Channels.WXPush.Groups),
 			},
 		},
 		"scenes": map[string]interface{}{
@@ -397,18 +371,12 @@ func NotificationCenterSettingToMap(setting NotificationCenterSetting) map[strin
 // MaskNotificationCenterSettingForAdmin 返回管理端可用配置
 func MaskNotificationCenterSettingForAdmin(setting NotificationCenterSetting) jsonmap.JSON {
 	normalized := NormalizeNotificationCenterSetting(setting)
-	result := jsonmap.JSON(NotificationCenterSettingToMap(normalized))
-	channels := settingsvalue.ToStringAnyMap(result["channels"])
-	if channels == nil {
-		return result
-	}
-	feishu := settingsvalue.ToStringAnyMap(channels["feishu"])
-	if feishu == nil {
-		return result
-	}
-	feishu["app_secret"] = ""
-	feishu["has_app_secret"] = normalized.Channels.Feishu.AppSecret != ""
-	return result
+	masked := NotificationCenterSettingToMap(normalized)
+	channels, _ := masked["channels"].(map[string]interface{})
+	wxpush, _ := channels["wxpush"].(map[string]interface{})
+	wxpush["api_token"] = ""
+	wxpush["has_api_token"] = normalized.Channels.WXPush.APIToken != ""
+	return jsonmap.JSON(masked)
 }
 
 // ApplyNotificationCenterSettingPatch 把补丁应用到当前通知中心配置并完成校验。
@@ -449,23 +417,20 @@ func ApplyNotificationCenterSettingPatch(current NotificationCenterSetting, patc
 				next.Channels.Telegram.Recipients = settingsvalue.CloneStringSlice(*patch.Channels.Telegram.Recipients)
 			}
 		}
-		if patch.Channels.Feishu != nil {
-			if patch.Channels.Feishu.Enabled != nil {
-				next.Channels.Feishu.Enabled = *patch.Channels.Feishu.Enabled
+		if patch.Channels.WXPush != nil {
+			if patch.Channels.WXPush.Enabled != nil {
+				next.Channels.WXPush.Enabled = *patch.Channels.WXPush.Enabled
 			}
-			if patch.Channels.Feishu.AppID != nil {
-				next.Channels.Feishu.AppID = strings.TrimSpace(*patch.Channels.Feishu.AppID)
+			if patch.Channels.WXPush.BaseURL != nil {
+				next.Channels.WXPush.BaseURL = *patch.Channels.WXPush.BaseURL
 			}
-			if patch.Channels.Feishu.AppSecret != nil {
-				if appSecret := strings.TrimSpace(*patch.Channels.Feishu.AppSecret); appSecret != "" {
-					next.Channels.Feishu.AppSecret = appSecret
+			if patch.Channels.WXPush.APIToken != nil {
+				if token := strings.TrimSpace(*patch.Channels.WXPush.APIToken); token != "" {
+					next.Channels.WXPush.APIToken = token
 				}
 			}
-			if patch.Channels.Feishu.ReceiveIDType != nil {
-				next.Channels.Feishu.ReceiveIDType = strings.ToLower(strings.TrimSpace(*patch.Channels.Feishu.ReceiveIDType))
-			}
-			if patch.Channels.Feishu.Recipients != nil {
-				next.Channels.Feishu.Recipients = settingsvalue.CloneStringSlice(*patch.Channels.Feishu.Recipients)
+			if patch.Channels.WXPush.Groups != nil {
+				next.Channels.WXPush.Groups = settingsvalue.CloneStringSlice(*patch.Channels.WXPush.Groups)
 			}
 		}
 	}
@@ -572,12 +537,11 @@ func DecodeNotificationCenterSetting(raw jsonmap.JSON, fallback NotificationCent
 			next.Channels.Telegram.Enabled = settingsvalue.ReadBool(telegramMap, "enabled", next.Channels.Telegram.Enabled)
 			next.Channels.Telegram.Recipients = settingsvalue.ReadStringList(telegramMap, "recipients", next.Channels.Telegram.Recipients)
 		}
-		if feishuMap := settingsvalue.ToStringAnyMap(channelsMap["feishu"]); feishuMap != nil {
-			next.Channels.Feishu.Enabled = settingsvalue.ReadBool(feishuMap, "enabled", next.Channels.Feishu.Enabled)
-			next.Channels.Feishu.AppID = settingsvalue.ReadString(feishuMap, "app_id", next.Channels.Feishu.AppID)
-			next.Channels.Feishu.AppSecret = settingsvalue.ReadString(feishuMap, "app_secret", next.Channels.Feishu.AppSecret)
-			next.Channels.Feishu.ReceiveIDType = settingsvalue.ReadString(feishuMap, "receive_id_type", next.Channels.Feishu.ReceiveIDType)
-			next.Channels.Feishu.Recipients = settingsvalue.ReadStringList(feishuMap, "recipients", next.Channels.Feishu.Recipients)
+		if wxpushMap := settingsvalue.ToStringAnyMap(channelsMap["wxpush"]); wxpushMap != nil {
+			next.Channels.WXPush.Enabled = settingsvalue.ReadBool(wxpushMap, "enabled", next.Channels.WXPush.Enabled)
+			next.Channels.WXPush.BaseURL = settingsvalue.ReadString(wxpushMap, "base_url", next.Channels.WXPush.BaseURL)
+			next.Channels.WXPush.APIToken = settingsvalue.ReadString(wxpushMap, "api_token", next.Channels.WXPush.APIToken)
+			next.Channels.WXPush.Groups = settingsvalue.ReadStringList(wxpushMap, "groups", next.Channels.WXPush.Groups)
 		}
 	}
 
@@ -605,7 +569,7 @@ func DecodeNotificationCenterSetting(raw jsonmap.JSON, fallback NotificationCent
 	if !legacyEnabled {
 		next.Channels.Email.Enabled = false
 		next.Channels.Telegram.Enabled = false
-		next.Channels.Feishu.Enabled = false
+		next.Channels.WXPush.Enabled = false
 	}
 
 	return next
@@ -721,18 +685,6 @@ func normalizeTelegramRecipients(items []string) []string {
 		}
 	}
 	return filtered
-}
-
-func normalizeFeishuReceiveIDType(value string) string {
-	normalized := strings.ToLower(strings.TrimSpace(value))
-	if normalized == "" {
-		return FeishuReceiveIDTypeChatID
-	}
-	return normalized
-}
-
-func normalizeFeishuRecipients(items []string, receiveIDType string) []string {
-	return normalizeNotificationStringList(items, receiveIDType == FeishuReceiveIDTypeEmail)
 }
 
 func normalizeNotificationStringList(items []string, lower bool) []string {

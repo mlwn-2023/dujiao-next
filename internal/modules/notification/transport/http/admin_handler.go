@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/notification/contract"
 	"github.com/dujiao-next/internal/modules/notification/domain"
 	settingsmessaging "github.com/dujiao-next/internal/modules/settings/schema/messaging"
@@ -75,7 +74,7 @@ func (h *AdminHandler) UpdateNotificationCenterSettings(c *gin.Context) {
 // NotificationCenterTestSendRequest 通知中心测试发送请求
 type NotificationCenterTestSendRequest struct {
 	Channel   string                 `json:"channel" binding:"required"`
-	Target    string                 `json:"target" binding:"required"`
+	Target    string                 `json:"target"`
 	Scene     string                 `json:"scene"`
 	Locale    string                 `json:"locale"`
 	Variables map[string]interface{} `json:"variables"`
@@ -127,9 +126,7 @@ func (h *AdminHandler) TestNotificationCenterSettings(c *gin.Context) {
 		return
 	}
 	channel := strings.ToLower(strings.TrimSpace(req.Channel))
-	if channel != constants.NotificationChannelEmail &&
-		channel != constants.NotificationChannelTelegram &&
-		channel != constants.NotificationChannelFeishu {
+	if channel != "email" && channel != "telegram" && channel != "wxpush" {
 		ginutil.RespondError(c, response.CodeBadRequest, "error.bad_request", nil)
 		return
 	}

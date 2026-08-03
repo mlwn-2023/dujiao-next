@@ -19,11 +19,11 @@ type notificationLogServiceStub struct {
 	items []domain.NotificationLog
 }
 
-type notificationTestSenderStub struct {
+type notificationSenderStub struct {
 	input contract.TestSendInput
 }
 
-func (s *notificationTestSenderStub) SendTest(_ context.Context, input contract.TestSendInput) error {
+func (s *notificationSenderStub) SendTest(_ context.Context, input contract.TestSendInput) error {
 	s.input = input
 	return nil
 }
@@ -113,17 +113,14 @@ func TestListNotificationLogsFiltersStatusAndChannel(t *testing.T) {
 	}
 }
 
-func TestNotificationCenterTestSendAcceptsFeishuChannel(t *testing.T) {
+func TestNotificationCenterTestAllowsWXPushWithoutGroupOverride(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	sender := &notificationTestSenderStub{}
+	sender := &notificationSenderStub{}
 	h := &AdminHandler{sender: sender}
+
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest(
-		http.MethodPost,
-		"/admin/settings/notification-center/test",
-		strings.NewReader(`{"channel":" FEISHU ","target":" oc_demo ","scene":"exception_alert","locale":"zh-CN"}`),
-	)
+	c.Request = httptest.NewRequest(http.MethodPost, "/admin/settings/notification-center/test", strings.NewReader(`{"channel":"wxpush","target":"","scene":"order_paid_success","locale":"zh-CN"}`))
 	c.Request.Header.Set("Content-Type", "application/json")
 
 	h.TestNotificationCenterSettings(c)
@@ -131,7 +128,7 @@ func TestNotificationCenterTestSendAcceptsFeishuChannel(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("status want 200 got %d body=%s", w.Code, w.Body.String())
 	}
-	if sender.input.Channel != "feishu" || sender.input.Target != "oc_demo" {
-		t.Fatalf("unexpected test send input: %#v", sender.input)
+	if sender.input.Channel != "wxpush" || sender.input.Target != "" {
+		t.Fatalf("unexpected send input: %#v", sender.input)
 	}
 }

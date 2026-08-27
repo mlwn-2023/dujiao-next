@@ -12,7 +12,7 @@
       variant="secondary"
       size="icon"
       @click="scrollToTop"
-      class="back-to-top fixed right-4 md:right-6 z-30 lg:z-40 h-11 w-11 rounded-full border shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5 [&_svg]:size-5"
+      class="back-to-top fixed left-4 md:left-6 z-30 lg:z-40 h-11 w-11 rounded-full border shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5 [&_svg]:size-5"
       :aria-label="t('common.backToTop')"
     >
       <ChevronUp />

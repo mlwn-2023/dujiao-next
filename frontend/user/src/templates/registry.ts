@@ -4,13 +4,13 @@ import { useAppStore } from '../stores/app'
  * 店面模板系统（站长全局切换 · 渐进并行迁移）
  *
  * - 当前激活模板优先级：本地预览覆盖(?template=) > 站点全局配置(storefront_template) > 默认 classic
- * - classic 与三套皮肤模板沿用现有 ../views/*，minimal/vault 可提供独立页面；缺页时自动回退 classic，
+ * - classic 沿用现有 ../views/*，各布局模板可提供独立页面；缺页时自动回退 classic，
  *   因此可以一页一页地把新设计搬进 vault，旧站全程可用。
  */
 
-export type StorefrontTemplate = 'classic' | 'vault' | 'minimal' | 'market' | 'noir' | 'atlas'
+export type StorefrontTemplate = 'classic' | 'vault' | 'minimal' | 'editorial' | 'catalog' | 'spotlight'
 
-export const STOREFRONT_TEMPLATES: StorefrontTemplate[] = ['classic', 'vault', 'minimal', 'market', 'noir', 'atlas']
+export const STOREFRONT_TEMPLATES: StorefrontTemplate[] = ['classic', 'vault', 'minimal', 'editorial', 'catalog', 'spotlight']
 export const DEFAULT_TEMPLATE: StorefrontTemplate = 'classic'
 
 const OVERRIDE_KEY = 'dj-storefront-template'
@@ -63,6 +63,10 @@ export const getActiveTemplate = (): StorefrontTemplate => {
 // 独立模板页面（按需动态加载）。key 形如 './vault/Home.vue' / './minimal/Home.vue'
 const vaultViews = import.meta.glob('./vault/**/*.vue')
 const minimalViews = import.meta.glob('./minimal/**/*.vue')
+const editorialViews = import.meta.glob('./editorial/**/*.vue')
+const catalogViews = import.meta.glob('./catalog/**/*.vue')
+const spotlightViews = import.meta.glob('./spotlight/**/*.vue')
+const templateViews: Record<string, Record<string, () => Promise<unknown>>> = { vault: vaultViews, minimal: minimalViews, editorial: editorialViews, catalog: catalogViews, spotlight: spotlightViews }
 
 type ViewLoader = () => Promise<unknown>
 
@@ -72,14 +76,9 @@ type ViewLoader = () => Promise<unknown>
  */
 export const templateView = (name: string, classicLoader: ViewLoader): ViewLoader => {
     return () => {
-        if (getActiveTemplate() === 'vault') {
-            const loader = vaultViews[`./vault/${name}.vue`]
-            if (loader) return loader()
-        }
-        if (getActiveTemplate() === 'minimal') {
-            const loader = minimalViews[`./minimal/${name}.vue`]
-            if (loader) return loader()
-        }
+        const template = getActiveTemplate()
+        const loader = templateViews[template]?.[`./${template}/${name}.vue`]
+        if (loader) return loader()
         return classicLoader()
     }
 }

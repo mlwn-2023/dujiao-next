@@ -528,6 +528,9 @@ const (
 	StorefrontTemplateClassic = "classic"
 	StorefrontTemplateVault   = "vault"
 	StorefrontTemplateMinimal = "minimal"
+	StorefrontTemplateMarket  = "market"
+	StorefrontTemplateNoir    = "noir"
+	StorefrontTemplateAtlas   = "atlas"
 	StorefrontTemplateDefault = StorefrontTemplateClassic
 )
 

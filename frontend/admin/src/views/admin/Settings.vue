@@ -42,6 +42,7 @@ type MinimalThemeColorKey =
   | 'announcement_dark'
   | 'button_light'
   | 'button_dark'
+type StorefrontTemplateKey = 'classic' | 'vault' | 'minimal' | 'market' | 'noir' | 'atlas'
 type SiteScriptItem = {
   name: string
   enabled: boolean
@@ -98,6 +99,18 @@ const minimalThemeColorFields = computed<Array<{ key: MinimalThemeColorKey; labe
   { key: 'button_light', label: t('admin.settings.template.buttonLight') },
   { key: 'button_dark', label: t('admin.settings.template.buttonDark') },
 ])
+
+const storefrontTemplateOptions = computed(() => [
+  { value: 'classic' as const, title: t('admin.settings.template.classicMode'), description: t('admin.settings.template.classicModeDesc'), swatch: '#2563EB' },
+  { value: 'vault' as const, title: t('admin.settings.template.vaultMode'), description: t('admin.settings.template.vaultModeDesc'), swatch: '#4F46E5' },
+  { value: 'minimal' as const, title: t('admin.settings.template.minimalMode'), description: t('admin.settings.template.minimalModeDesc'), swatch: '#18181B' },
+  { value: 'market' as const, title: 'Market', description: '明亮零售货架风格，突出分类、价格与快速购买。', swatch: '#0F766E' },
+  { value: 'noir' as const, title: 'Noir', description: '高对比夜间风格，适合数字商品和强调促销的店铺。', swatch: '#F97316' },
+  { value: 'atlas' as const, title: 'Atlas', description: '结构化目录风格，适合商品较多的专业店铺。', swatch: '#4338CA' },
+])
+
+const isStorefrontTemplate = (value: string): value is StorefrontTemplateKey =>
+  ['classic', 'vault', 'minimal', 'market', 'noir', 'atlas'].includes(value)
 
 const fallbackCurrencyOptions = [
   'CNY', 'USD', 'EUR', 'GBP', 'JPY', 'KRW', 'HKD', 'TWD', 'SGD', 'AUD',
@@ -234,7 +247,7 @@ const form = reactive({
   },
   scripts: [] as SiteScriptItem[],
   footer_links: [] as FooterLinkItem[],
-  storefront_template: 'classic' as 'classic' | 'vault' | 'minimal',
+  storefront_template: 'classic' as StorefrontTemplateKey,
   template_mode: 'card' as 'card' | 'list',
   ui_controls: {
     show_banner: true,
@@ -485,7 +498,7 @@ const fetchSettings = async () => {
       form.template_mode = rawTemplateMode === 'list' ? 'list' : 'card'
 
       const rawStorefrontTemplate = String(data.storefront_template || 'classic').trim()
-      form.storefront_template = rawStorefrontTemplate === 'vault' || rawStorefrontTemplate === 'minimal'
+      form.storefront_template = isStorefrontTemplate(rawStorefrontTemplate)
         ? rawStorefrontTemplate
         : 'classic'
 
@@ -1282,6 +1295,27 @@ onMounted(() => {
                 <div class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.template.minimalModeDesc') }}</div>
               </div>
               <div v-if="form.storefront_template === 'minimal'" class="absolute right-3 top-3">
+                <svg class="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </Label>
+
+            <Label
+              v-for="option in storefrontTemplateOptions.slice(3)"
+              :key="option.value"
+              class="relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all"
+              :class="form.storefront_template === option.value
+                ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                : 'border-border hover:border-muted-foreground/30'"
+            >
+              <RadioGroupItem :value="option.value" class="sr-only" />
+              <span class="h-16 w-16 rounded-lg border-4 border-card shadow-sm" :style="{ backgroundColor: option.swatch }" />
+              <div class="text-center">
+                <div class="font-semibold" :class="form.storefront_template === option.value ? 'text-primary' : ''">{{ option.title }}</div>
+                <div class="mt-1 text-xs text-muted-foreground">{{ option.description }}</div>
+              </div>
+              <div v-if="form.storefront_template === option.value" class="absolute right-3 top-3">
                 <svg class="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>

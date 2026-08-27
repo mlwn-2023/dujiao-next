@@ -1,0 +1,47 @@
+/* Atlas: structured catalogue style with cool and warm accents. */
+.storefront-atlas {
+  --ui-bg-page: #f7f8fc;
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-soft: #eef2ff;
+  --ui-bg-muted: #eef0f6;
+  --ui-text-primary: #1e1b4b;
+  --ui-text-secondary: #3730a3;
+  --ui-text-muted: #6b7280;
+  --ui-border: rgba(30, 27, 75, 0.14);
+  --ui-border-strong: rgba(30, 27, 75, 0.25);
+  --ui-accent: #4338ca;
+  --ui-accent-hover: #3730a3;
+  --ui-accent-soft: rgba(67, 56, 202, 0.1);
+  --ui-text-on-accent: #ffffff;
+  --ui-radius-sm: 0.25rem;
+  --ui-radius-md: 0.375rem;
+  --ui-radius-lg: 0.5rem;
+  --ui-radius-xl: 0.625rem;
+  --ui-shadow-1: 0 1px 2px rgba(30, 27, 75, 0.05);
+  --ui-shadow-2: 0 10px 24px -20px rgba(30, 27, 75, 0.3);
+  --ui-shadow-3: 0 22px 42px -30px rgba(30, 27, 75, 0.36);
+}
+
+.storefront-atlas .theme-wordmark-text { color: #4338ca; font-weight: 900; }
+.storefront-atlas .bg-primary { background-color: #4338ca; }
+.storefront-atlas .text-primary { color: #4338ca; }
+.storefront-atlas .border-primary { border-color: #4338ca; }
+.storefront-atlas .home-page > section:first-child .container > div { border-color: rgba(67, 56, 202, 0.28); }
+.storefront-atlas .storefront-product-grid > * { border-radius: 0.5rem; box-shadow: 0 10px 22px -22px rgba(30, 27, 75, 0.5); }
+.storefront-atlas .storefront-product-grid > *:hover { border-color: rgba(236, 72, 153, 0.58); }
+
+.dark .storefront-atlas {
+  --ui-bg-page: #141529;
+  --ui-bg-elevated: #1d1f37;
+  --ui-bg-soft: #282b4a;
+  --ui-bg-muted: #323558;
+  --ui-text-primary: #f4f4ff;
+  --ui-text-secondary: #ddd6fe;
+  --ui-text-muted: #a5b4fc;
+  --ui-border: rgba(221, 214, 254, 0.13);
+  --ui-border-strong: rgba(221, 214, 254, 0.24);
+  --ui-accent: #a78bfa;
+  --ui-accent-hover: #c4b5fd;
+  --ui-accent-soft: rgba(167, 139, 250, 0.16);
+  --ui-text-on-accent: #1e1b4b;
+}

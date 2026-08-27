@@ -19,6 +19,9 @@ func TestNormalizeStorefrontTemplate(t *testing.T) {
 		{name: "vault", raw: "vault", want: constants.StorefrontTemplateVault},
 		{name: "minimal", raw: "minimal", want: constants.StorefrontTemplateMinimal},
 		{name: "trimmed minimal", raw: "  minimal  ", want: constants.StorefrontTemplateMinimal},
+		{name: "market", raw: "market", want: constants.StorefrontTemplateMarket},
+		{name: "noir", raw: "noir", want: constants.StorefrontTemplateNoir},
+		{name: "atlas", raw: "atlas", want: constants.StorefrontTemplateAtlas},
 		{name: "unknown falls back", raw: "unknown", want: constants.StorefrontTemplateDefault},
 		{name: "nil falls back", raw: nil, want: constants.StorefrontTemplateDefault},
 	}

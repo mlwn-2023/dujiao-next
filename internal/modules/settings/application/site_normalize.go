@@ -363,13 +363,19 @@ func normalizeSiteTemplateMode(raw interface{}) string {
 	return "card"
 }
 
-// normalizeStorefrontTemplate 归一化店面模板，允许 classic、vault 或 minimal，默认 classic。
+// normalizeStorefrontTemplate 归一化店面模板，未知值回退 classic。
 func normalizeStorefrontTemplate(raw interface{}) string {
 	switch normalizeSettingText(raw) {
 	case constants.StorefrontTemplateVault:
 		return constants.StorefrontTemplateVault
 	case constants.StorefrontTemplateMinimal:
 		return constants.StorefrontTemplateMinimal
+	case constants.StorefrontTemplateMarket:
+		return constants.StorefrontTemplateMarket
+	case constants.StorefrontTemplateNoir:
+		return constants.StorefrontTemplateNoir
+	case constants.StorefrontTemplateAtlas:
+		return constants.StorefrontTemplateAtlas
 	default:
 		return constants.StorefrontTemplateDefault
 	}

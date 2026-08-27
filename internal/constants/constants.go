@@ -528,13 +528,13 @@ const (
 
 // 店面模板常量（站长全局选择的用户前台模板）
 const (
-	StorefrontTemplateClassic = "classic"
-	StorefrontTemplateVault   = "vault"
-	StorefrontTemplateMinimal = "minimal"
-	StorefrontTemplateMarket  = "market"
-	StorefrontTemplateNoir    = "noir"
-	StorefrontTemplateAtlas   = "atlas"
-	StorefrontTemplateDefault = StorefrontTemplateClassic
+	StorefrontTemplateClassic   = "classic"
+	StorefrontTemplateVault     = "vault"
+	StorefrontTemplateMinimal   = "minimal"
+	StorefrontTemplateEditorial = "editorial"
+	StorefrontTemplateCatalog   = "catalog"
+	StorefrontTemplateSpotlight = "spotlight"
+	StorefrontTemplateDefault   = StorefrontTemplateClassic
 )
 
 // 站点语言常量

@@ -370,12 +370,12 @@ func normalizeStorefrontTemplate(raw interface{}) string {
 		return constants.StorefrontTemplateVault
 	case constants.StorefrontTemplateMinimal:
 		return constants.StorefrontTemplateMinimal
-	case constants.StorefrontTemplateMarket:
-		return constants.StorefrontTemplateMarket
-	case constants.StorefrontTemplateNoir:
-		return constants.StorefrontTemplateNoir
-	case constants.StorefrontTemplateAtlas:
-		return constants.StorefrontTemplateAtlas
+	case constants.StorefrontTemplateEditorial:
+		return constants.StorefrontTemplateEditorial
+	case constants.StorefrontTemplateCatalog:
+		return constants.StorefrontTemplateCatalog
+	case constants.StorefrontTemplateSpotlight:
+		return constants.StorefrontTemplateSpotlight
 	default:
 		return constants.StorefrontTemplateDefault
 	}

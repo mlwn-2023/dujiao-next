@@ -42,7 +42,7 @@ type MinimalThemeColorKey =
   | 'announcement_dark'
   | 'button_light'
   | 'button_dark'
-type StorefrontTemplateKey = 'classic' | 'vault' | 'minimal' | 'market' | 'noir' | 'atlas'
+type StorefrontTemplateKey = 'classic' | 'vault' | 'minimal' | 'editorial' | 'catalog' | 'spotlight'
 type SiteScriptItem = {
   name: string
   enabled: boolean
@@ -104,13 +104,13 @@ const storefrontTemplateOptions = computed(() => [
   { value: 'classic' as const, title: t('admin.settings.template.classicMode'), description: t('admin.settings.template.classicModeDesc'), swatch: '#2563EB' },
   { value: 'vault' as const, title: t('admin.settings.template.vaultMode'), description: t('admin.settings.template.vaultModeDesc'), swatch: '#4F46E5' },
   { value: 'minimal' as const, title: t('admin.settings.template.minimalMode'), description: t('admin.settings.template.minimalModeDesc'), swatch: '#18181B' },
-  { value: 'market' as const, title: 'Market', description: '明亮零售货架风格，突出分类、价格与快速购买。', swatch: '#0F766E' },
-  { value: 'noir' as const, title: 'Noir', description: '高对比夜间风格，适合数字商品和强调促销的店铺。', swatch: '#F97316' },
-  { value: 'atlas' as const, title: 'Atlas', description: '结构化目录风格，适合商品较多的专业店铺。', swatch: '#4338CA' },
+  { value: 'editorial' as const, title: 'Editorial', description: '杂志式内容布局，突出品牌故事、横幅与精选商品。', swatch: '#BE123C' },
+  { value: 'catalog' as const, title: 'Catalog', description: '目录式工作台布局，分类导航与商品网格并列展示。', swatch: '#0F766E' },
+  { value: 'spotlight' as const, title: 'Spotlight', description: '单品聚焦布局，首屏突出主推商品与购买入口。', swatch: '#7C3AED' },
 ])
 
 const isStorefrontTemplate = (value: string): value is StorefrontTemplateKey =>
-  ['classic', 'vault', 'minimal', 'market', 'noir', 'atlas'].includes(value)
+  ['classic', 'vault', 'minimal', 'editorial', 'catalog', 'spotlight'].includes(value)
 
 const fallbackCurrencyOptions = [
   'CNY', 'USD', 'EUR', 'GBP', 'JPY', 'KRW', 'HKD', 'TWD', 'SGD', 'AUD',

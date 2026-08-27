@@ -2,7 +2,7 @@
   <div
     id="app"
     class="min-h-screen bg-background text-foreground flex flex-col"
-    :class="{ 'storefront-minimal': isMinimal }"
+    :class="`storefront-${activeTemplate}`"
   >
     <MinimalLayout v-if="isMinimal && !isResellerConsole">
       <ErrorBoundary>
@@ -75,8 +75,9 @@ const route = useRoute()
 const { showContactFloatingButton } = useStorefrontControls()
 const isResellerConsole = computed(() => route.meta.resellerConsole === true)
 // getActiveTemplate 读取 appStore.config（响应式），config 加载后会重新计算
-const isVault = computed(() => getActiveTemplate() === 'vault')
-const isMinimal = computed(() => getActiveTemplate() === 'minimal')
+const activeTemplate = computed(() => getActiveTemplate())
+const isVault = computed(() => activeTemplate.value === 'vault')
+const isMinimal = computed(() => activeTemplate.value === 'minimal')
 </script>
 
 <style>

@@ -1,0 +1,59 @@
+name: sync upstream main
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: true
+
+env:
+  TARGET_BRANCH: cardpay88-v1.4-merged
+
+jobs:
+  sync:
+    name: Sync dujiao-next main
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/dujiao-next/dujiao-next.git
+          git fetch --no-tags upstream main
+
+      - name: Create synchronization branch
+        run: git switch -C automation/upstream-main
+
+      - name: Merge upstream without bypassing conflicts
+        run: |
+          git merge --no-commit --no-ff upstream/main
+          git commit -m "chore: sync upstream main"
+
+      - name: Open synchronization pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/upstream-main
+          base: ${{ env.TARGET_BRANCH }}
+          delete-branch: true
+          title: 'chore: sync upstream main'
+          commit-message: 'chore: sync upstream main'
+          body: |
+            This pull request was created automatically from `dujiao-next/dujiao-next:main`.
+
+            CI must pass before merging. If upstream conflicts with custom storefront templates,
+            WXPush, or other local changes, the workflow stops and requires manual resolution.

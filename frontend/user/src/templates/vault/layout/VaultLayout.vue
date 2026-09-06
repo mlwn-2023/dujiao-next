@@ -141,7 +141,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  Search, Moon, Sun, ShoppingCart, Languages, Menu, X, User, Info, ClipboardList, LogOut, Github,
+  Search, Moon, Sun, ShoppingCart, Languages, Menu, X, User, Info, ClipboardList, LogOut, Github, Send, MessageCircle,
   LayoutGrid,
 } from 'lucide-vue-next'
 import { useAppStore } from '../../../stores/app'
@@ -190,6 +190,7 @@ const brandDescription = computed(() => {
   }
   return ''
 })
+const contact = computed(() => appStore.config?.contact as { telegram?: string; whatsapp?: string } | undefined)
 
 const { isListMode, blogEnabled, noticeEnabled, aboutEnabled, secondaryNavItems } = useNavConfig()
 const { showLanguageSwitcher, showThemeSwitcher } = useStorefrontControls()
